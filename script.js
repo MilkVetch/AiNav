@@ -17,13 +17,11 @@ const CONFIG = {
 
 // 1. 初始化
 async function init() {
-    // 强制先实例化弹窗，避免代码执行中找不到对象
     ['settingsModal', 'siteModal', 'catModal'].forEach(id => {
         const el = document.getElementById(id);
         if (el) bootstrapModals[id] = new bootstrap.Modal(el);
     });
 
-    // 回显设置
     if (CONFIG.token) document.getElementById('ghToken').value = CONFIG.token;
     if (CONFIG.gistId) document.getElementById('gistId').value = CONFIG.gistId;
 
@@ -38,59 +36,32 @@ async function init() {
     lucide.createIcons();
 }
 
-// 2. 状态点点击重置
-function confirmReset() {
-    const msg = isConfigured ? "确定要断开连接并清空本地配置吗？" : "确定清空本地配置吗？";
-    if (confirm(msg)) {
-        localStorage.clear();
-        location.reload();
-    }
-}
-
-// 3. 智能开启设置弹窗
-function handleOpenSettings() {
-    if (bootstrapModals['settingsModal']) {
-        bootstrapModals['settingsModal'].show();
-        // 如果未配置，自动展开后端选项
-        if (!isConfigured) {
-            const btn = document.getElementById('backendCollapseBtn');
-            const target = document.getElementById('collapseBackend');
-            if (btn && !target.classList.contains('show')) {
-                btn.click(); // 触发折叠展开
-            }
-        }
-    }
-}
-
+// 2. 数据获取
 async function fetchData() {
     try {
         const res = await fetch(`https://api.github.com/gists/${CONFIG.gistId}`, {
             headers: { 'Authorization': `token ${CONFIG.token}` }
         });
         if (!res.ok) throw new Error('Auth Failed');
-        
         const gist = await res.json();
         const file = gist.files['ainav.json'];
-        
         if (file) {
             const content = JSON.parse(file.content);
             db = content.categories ? { activeIndex: 0, boards: [content], theme: 'classic' } : content;
         }
-        
         isConfigured = true;
         applyTheme(db.theme || 'classic', false);
         updateStatus(true);
         render();
     } catch (err) {
-        console.error(err);
         isConfigured = false;
         updateStatus(false);
         showSetupRequired();
     }
 }
 
+// 3. 渲染
 function render() {
-    // 解除隐藏限制
     document.getElementById('boardSettingItem').classList.remove('d-none');
     document.getElementById('themeSettingItem').classList.remove('d-none');
     document.getElementById('addSiteBtn').classList.remove('d-none');
@@ -100,7 +71,7 @@ function render() {
     const activeBoard = db.boards[db.activeIndex] || db.boards[0];
 
     if (!activeBoard) {
-        app.innerHTML = `<div class="text-center py-5 mt-5"><h4>欢迎！</h4><button class="btn btn-theme-primary" onclick="createNewBoard()">创建首个面板</button></div>`;
+        app.innerHTML = `<div class="text-center py-5 mt-5"><h4>连接成功！</h4><button class="btn btn-theme-primary" onclick="createNewBoard()">创建首个面板</button></div>`;
         return;
     }
 
@@ -125,9 +96,16 @@ function render() {
             </div>
             <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3" id="cat-${cIdx}"></div>`;
         app.appendChild(section);
+        
         const grid = document.getElementById(`cat-${cIdx}`);
         cat.sites.forEach((site, sIdx) => {
-            const domain = new URL(site.url).hostname;
+            let domain = '';
+            try {
+                domain = new URL(site.url).hostname;
+            } catch(e) {
+                domain = 'invalid'; // 容错处理：如果 URL 依然无效，不让页面卡死
+            }
+            
             grid.innerHTML += `
                 <div class="col"><div class="card nav-card shadow-sm p-3 text-center h-100 position-relative">
                     <button class="btn btn-link delete-item-btn p-0" onclick="event.preventDefault(); deleteSite(${cIdx}, ${sIdx})"><i data-lucide="x-circle" class="icon-sm"></i></button>
@@ -141,9 +119,47 @@ function render() {
     lucide.createIcons();
 }
 
-function showSetupRequired() {
-    document.getElementById('app').innerHTML = `<div class="text-center py-5 bg-white rounded-4 shadow border mt-5"><h3>尚未配置</h3><p class="text-muted mb-4">连接 GitHub Gist 以管理您的云端数据。</p><button class="btn btn-primary px-4" onclick="handleOpenSettings()">去配置</button></div>`;
-    lucide.createIcons();
+// 4. 核心功能
+function addItem() {
+    const cIdx = document.getElementById('targetCat').value;
+    const name = document.getElementById('siteName').value;
+    let url = document.getElementById('siteUrl').value.trim();
+
+    // 关键修正：如果输入的网址没有 http/https，自动加上
+    if (url && !/^https?:\/\//i.test(url)) {
+        url = 'https://' + url;
+    }
+
+    if(cIdx !== "" && name && url) {
+        db.boards[db.activeIndex].categories[cIdx].sites.push({ name, url });
+        closeModal('siteModal');
+        // 清空输入框
+        document.getElementById('siteName').value = '';
+        document.getElementById('siteUrl').value = '';
+        render();
+        pushToGist();
+    } else {
+        alert("请填写完整信息");
+    }
+}
+
+// 其余逻辑（保持不变）
+function handleOpenSettings() {
+    openModal('settingsModal');
+    if (!isConfigured) {
+        const btn = document.getElementById('backendCollapseBtn');
+        const target = document.getElementById('collapseBackend');
+        if (btn && !target.classList.contains('show')) {
+            btn.click();
+        }
+    }
+}
+
+function confirmReset() {
+    if (confirm("确定要断开连接并清空本地配置吗？")) {
+        localStorage.clear();
+        location.reload();
+    }
 }
 
 async function saveSettings() {
@@ -187,8 +203,10 @@ function updateStatus(on) {
 }
 function openModal(id) { if(bootstrapModals[id]) bootstrapModals[id].show(); }
 function closeModal(id) { if(bootstrapModals[id]) bootstrapModals[id].hide(); }
-
-// 逻辑功能
+function showSetupRequired() {
+    document.getElementById('app').innerHTML = `<div class="text-center py-5 bg-white rounded-4 shadow border mt-5"><h3>欢迎使用</h3><p class="text-muted mb-4">请先配置 Gist 以启用同步功能。</p><button class="btn btn-primary px-4" onclick="handleOpenSettings()">去配置</button></div>`;
+    lucide.createIcons();
+}
 function switchBoard(idx) { db.activeIndex = parseInt(idx); render(); pushToGist(); }
 function createNewBoard() {
     const name = prompt("输入新面板名称：");
@@ -204,12 +222,6 @@ function deleteCurrentBoard() {
 function addCategory() {
     const n = document.getElementById('catName').value;
     if(n){ db.boards[db.activeIndex].categories.push({name:n, sites:[]}); render(); pushToGist(); closeModal('catModal'); }
-}
-function addItem() {
-    const cIdx = document.getElementById('targetCat').value;
-    const n = document.getElementById('siteName').value;
-    const u = document.getElementById('siteUrl').value;
-    if(cIdx!=="" && n && u){ db.boards[db.activeIndex].categories[cIdx].sites.push({name:n, url:u}); render(); pushToGist(); closeModal('siteModal'); }
 }
 function deleteSite(c, s) { if(confirm('确认删除网址？')){ db.boards[db.activeIndex].categories[c].sites.splice(s,1); render(); pushToGist(); } }
 function deleteCat(i) { if(confirm('确认删除分类？')){ db.boards[db.activeIndex].categories.splice(i,1); render(); pushToGist(); } }
