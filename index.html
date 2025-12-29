@@ -3,326 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 音乐创作导航</title>
+    <title>AI Music Nav - Cloud</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        :root {
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --accent: #6366f1;
-            --border: #e2e8f0;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-        }
-
-        header {
-            max-width: 1000px;
-            margin: 0 auto 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        h1 { font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .category-section {
-            margin-bottom: 40px;
-        }
-
-        .category-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 8px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 16px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            padding: 16px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: all 0.2s;
-            position: relative;
-        }
-
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            border-color: var(--accent);
-        }
-
-        .card img {
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-        }
-
-        .btn {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.9rem;
-        }
-
-        .btn-danger { background: #ef4444; }
-
-        /* 弹窗样式 */
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-size: 0.9rem; }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        .delete-btn {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            opacity: 0;
-            background: #fee2e2;
-            color: #ef4444;
-            border: none;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-
+        :root { --bg: #fdfdfd; --card-bg: #ffffff; --accent: #2563eb; --border: #e2e8f0; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: #0f172a; margin: 0; }
+        .navbar { padding: 0.75rem 1.5rem; background: white; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
+        .container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+        .category-group { margin-bottom: 2.5rem; }
+        .category-title { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
+        .card { background: var(--card-bg); border: 1px solid var(--border); padding: 1rem; border-radius: 12px; text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
+        .card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .card img { width: 40px; height: 40px; border-radius: 8px; background: #f1f5f9; padding: 4px; }
+        .card span { font-size: 0.85rem; font-weight: 500; text-align: center; }
+        .btn { padding: 0.5rem 0.85rem; border-radius: 8px; border: 1px solid var(--border); background: white; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; font-weight: 500; }
+        .btn-primary { background: #0f172a; color: white; border: none; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; transition: background 0.3s; }
+        .status-online { background: #10b981; box-shadow: 0 0 8px #10b981; }
+        .status-offline { background: #f43f5e; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 1.5rem; border-radius: 16px; width: 90%; max-width: 380px; }
+        input, select { width: 100%; padding: 0.75rem; margin: 0.5rem 0 1rem; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; font-size: 0.9rem; }
+        .delete-btn { position: absolute; top: 6px; right: 6px; opacity: 0; color: #ef4444; background: none; border: none; cursor: pointer; }
         .card:hover .delete-btn { opacity: 1; }
-
-        .config-area {
-            margin-top: 50px;
-            padding: 20px;
-            background: #eee;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 12px;
-            display: none;
-        }
     </style>
 </head>
 <body>
 
-<header>
-    <h1><i data-lucide="music"></i> AI 音乐导航</h1>
-    <div style="display: flex; gap: 10px;">
-        <button class="btn" onclick="toggleModal('categoryModal')"><i data-lucide="folder-plus"></i> 加分类</button>
-        <button class="btn" onclick="toggleModal('siteModal')"><i data-lucide="plus-circle"></i> 加网址</button>
-        <button class="btn" style="background: #64748b;" onclick="toggleConfig()"><i data-lucide="settings"></i> 配置</button>
+<nav class="navbar">
+    <div style="display:flex; align-items:center; gap:12px;">
+        <i data-lucide="layout-grid" size="20"></i>
+        <strong style="font-size:1.1rem; letter-spacing:-0.5px;">AI Music Nav</strong>
+        <span id="syncStatus" class="status-dot status-offline"></span>
     </div>
-</header>
-
-<div class="container" id="main-content">
+    <div style="display:flex; gap:8px;">
+        <button class="btn" onclick="openModal('siteModal')"><i data-lucide="plus-circle" size="16"></i>网址</button>
+        <button class="btn" onclick="openModal('catModal')"><i data-lucide="folder-plus" size="16"></i>分类</button>
+        <button class="btn" onclick="openModal('settingsModal')"><i data-lucide="settings" size="16"></i></button>
     </div>
+</nav>
 
-<div id="categoryModal" class="modal">
+<div class="container" id="app">
+    <div style="text-align:center; color:#94a3b8; margin-top:8rem;">
+        <i data-lucide="cloud-off" size="48" style="margin-bottom:1rem; opacity:0.5;"></i>
+        <p>尚未连接 GitHub Gist</p>
+        <button class="btn btn-primary" onclick="openModal('settingsModal')">立即配置</button>
+    </div>
+</div>
+
+<div id="settingsModal" class="modal">
     <div class="modal-content">
-        <h3>新增分类</h3>
-        <div class="form-group">
-            <label>分类名称</label>
-            <input type="text" id="newCatName" placeholder="例如：生成器">
-        </div>
-        <button class="btn" onclick="addCategory()">保存</button>
-        <button class="btn btn-danger" onclick="toggleModal('categoryModal')" style="margin-top: 10px;">取消</button>
+        <h3 style="margin-top:0">Gist 后端配置</h3>
+        <p style="font-size:0.8rem; color:#64748b">数据将同步至 Gist 中的 <code style="color: #e11d48;">ainav.json</code></p>
+        <label style="font-size:0.8rem; font-weight:600;">Personal Access Token</label>
+        <input type="password" id="ghToken" placeholder="ghp_xxxxxxxx">
+        <label style="font-size:0.8rem; font-weight:600;">Gist ID</label>
+        <input type="text" id="gistId" placeholder="你的 Gist ID">
+        <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="saveSettings()">连接并同步</button>
+        <button class="btn" style="width:100%; margin-top:10px; justify-content:center;" onclick="closeModal('settingsModal')">取消</button>
     </div>
 </div>
 
 <div id="siteModal" class="modal">
     <div class="modal-content">
-        <h3>新增网址</h3>
-        <div class="form-group">
-            <label>所属分类</label>
-            <select id="siteCat"></select>
-        </div>
-        <div class="form-group">
-            <label>网站名称</label>
-            <input type="text" id="siteName" placeholder="Suno">
-        </div>
-        <div class="form-group">
-            <label>网址 (URL)</label>
-            <input type="text" id="siteUrl" placeholder="https://suno.com">
-        </div>
-        <button class="btn" onclick="addSite()">保存</button>
-        <button class="btn btn-danger" onclick="toggleModal('siteModal')" style="margin-top: 10px;">取消</button>
+        <h3 style="margin-top:0">新增网址</h3>
+        <select id="targetCat"></select>
+        <input type="text" id="siteName" placeholder="站点名称 (如: Suno)">
+        <input type="text" id="siteUrl" placeholder="https://...">
+        <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="addItem()">确认添加</button>
+        <button class="btn" style="width:100%; margin-top:10px; justify-content:center;" onclick="closeModal('siteModal')">取消</button>
     </div>
 </div>
 
-<div id="configSection" class="container config-area">
-    <p>// 复制下方 JSON 到代码中的 INITIAL_DATA 即可完成静态部署</p>
-    <textarea id="configTextarea" style="width: 100%; height: 200px;"></textarea>
+<div id="catModal" class="modal">
+    <div class="modal-content">
+        <h3 style="margin-top:0">新增分类</h3>
+        <input type="text" id="catName" placeholder="分类名称 (如: 伴奏提取)">
+        <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="addCategory()">确认添加</button>
+        <button class="btn" style="width:100%; margin-top:10px; justify-content:center;" onclick="closeModal('catModal')">取消</button>
+    </div>
 </div>
 
 <script>
-    // 初始预设数据
-    const INITIAL_DATA = [
-        {
-            name: "全能生成器",
-            sites: [
-                { name: "Suno", url: "https://suno.com" },
-                { name: "Udio", url: "https://udio.com" },
-                { name: "Stable Audio", url: "https://stableaudio.com" }
-            ]
-        },
-        {
-            name: "辅助工具",
-            sites: [
-                { name: "LALAL.AI", url: "https://www.lalal.ai" },
-                { name: "AIVA", url: "https://www.aiva.ai" }
-            ]
-        }
-    ];
+    let db = { categories: [] };
+    const CONFIG = {
+        token: localStorage.getItem('gh_token'),
+        gistId: localStorage.getItem('gh_gist_id')
+    };
 
-    let data = JSON.parse(localStorage.getItem('ai_music_nav')) || INITIAL_DATA;
+    async function init() {
+        if (!CONFIG.token || !CONFIG.gistId) return;
+        try {
+            const res = await fetch(`https://api.github.com/gists/${CONFIG.gistId}`, {
+                headers: { 'Authorization': `token ${CONFIG.token}` }
+            });
+            const gist = await res.json();
+            const content = gist.files['ainav.json'].content;
+            db = JSON.parse(content);
+            document.getElementById('syncStatus').className = 'status-dot status-online';
+            render();
+        } catch (err) {
+            console.error(err);
+            alert('读取 ainav.json 失败，请确保 Gist 中存在该文件');
+        }
+    }
+
+    async function pushToGist() {
+        if (!CONFIG.token || !CONFIG.gistId) return;
+        document.getElementById('syncStatus').className = 'status-dot status-offline';
+        try {
+            await fetch(`https://api.github.com/gists/${CONFIG.gistId}`, {
+                method: 'PATCH',
+                headers: { 'Authorization': `token ${CONFIG.token}` },
+                body: JSON.stringify({
+                    files: { 'ainav.json': { content: JSON.stringify(db, null, 2) } }
+                })
+            });
+            document.getElementById('syncStatus').className = 'status-dot status-online';
+        } catch (err) { alert('云端同步失败'); }
+    }
 
     function render() {
-        const container = document.getElementById('main-content');
-        const select = document.getElementById('siteCat');
-        container.innerHTML = '';
-        select.innerHTML = '';
-
-        data.forEach((cat, catIdx) => {
-            // 渲染分类
-            let html = `
-                <div class="category-section">
-                    <div class="category-header">
-                        <i data-lucide="layers" size="18"></i>
-                        <h3>${cat.name}</h3>
-                        <button onclick="deleteCategory(${catIdx})" style="border:none; background:none; cursor:pointer; color:#94a3b8;"><i data-lucide="trash-2" size="14"></i></button>
-                    </div>
-                    <div class="grid">
+        const app = document.getElementById('app');
+        const select = document.getElementById('targetCat');
+        app.innerHTML = ''; select.innerHTML = '';
+        if (db.categories.length === 0) {
+            app.innerHTML = '<div style="text-align:center; color:#94a3b8; margin-top:5rem;">点击上方按钮添加分类</div>';
+            return;
+        }
+        db.categories.forEach((cat, cIdx) => {
+            select.innerHTML += `<option value="${cIdx}">${cat.name}</option>`;
+            let section = document.createElement('div');
+            section.className = 'category-group';
+            section.innerHTML = `
+                <div class="category-title">
+                    <i data-lucide="hash" size="14"></i><span>${cat.name}</span>
+                    <button class="btn" onclick="deleteCat(${cIdx})" style="border:none; background:none; padding:2px; color:#cbd5e1;"><i data-lucide="trash-2" size="14"></i></button>
+                </div>
+                <div class="grid" id="cat-${cIdx}"></div>
             `;
-
-            cat.sites.forEach((site, siteIdx) => {
-                const icon = `https://www.google.com/s2/favicons?sz=64&domain=${new URL(site.url).hostname}`;
-                html += `
+            app.appendChild(section);
+            const grid = document.getElementById(`cat-${cIdx}`);
+            cat.sites.forEach((site, sIdx) => {
+                const domain = new URL(site.url).hostname;
+                grid.innerHTML += `
                     <a href="${site.url}" target="_blank" class="card">
-                        <img src="${icon}" alt="icon" onerror="this.src='https://lucide.dev/favicon.ico'">
+                        <button class="delete-btn" onclick="event.preventDefault(); deleteSite(${cIdx}, ${sIdx})"><i data-lucide="minus-circle" size="16"></i></button>
+                        <img src="https://www.google.com/s2/favicons?sz=64&domain=${domain}" onerror="this.src='https://lucide.dev/favicon.ico'">
                         <span>${site.name}</span>
-                        <button class="delete-btn" onclick="event.preventDefault(); deleteSite(${catIdx}, ${siteIdx})">×</button>
                     </a>
                 `;
             });
-
-            html += `</div></div>`;
-            container.insertAdjacentHTML('beforeend', html);
-
-            // 更新下拉框
-            let opt = document.createElement('option');
-            opt.value = catIdx;
-            opt.innerText = cat.name;
-            select.appendChild(opt);
         });
-        
         lucide.createIcons();
-        save();
     }
 
-    function toggleModal(id) {
-        const m = document.getElementById(id);
-        m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
+    function saveSettings() {
+        localStorage.setItem('gh_token', document.getElementById('ghToken').value);
+        localStorage.setItem('gh_gist_id', document.getElementById('gistId').value);
+        location.reload();
     }
-
     function addCategory() {
-        const name = document.getElementById('newCatName').value;
-        if (name) {
-            data.push({ name: name, sites: [] });
-            document.getElementById('newCatName').value = '';
-            toggleModal('categoryModal');
-            render();
-        }
+        const name = document.getElementById('catName').value;
+        if(name) { db.categories.push({ name, sites: [] }); closeModal('catModal'); render(); pushToGist(); }
     }
-
-    function addSite() {
-        const catIdx = document.getElementById('siteCat').value;
+    function addItem() {
+        const cIdx = document.getElementById('targetCat').value;
         const name = document.getElementById('siteName').value;
         const url = document.getElementById('siteUrl').value;
-        if (name && url) {
-            data[catIdx].sites.push({ name, url });
-            document.getElementById('siteName').value = '';
-            document.getElementById('siteUrl').value = '';
-            toggleModal('siteModal');
-            render();
-        }
+        if(name && url) { db.categories[cIdx].sites.push({ name, url }); closeModal('siteModal'); render(); pushToGist(); }
     }
-
-    function deleteSite(cIdx, sIdx) {
-        if(confirm('确定删除这个网站吗？')) {
-            data[cIdx].sites.splice(sIdx, 1);
-            render();
-        }
-    }
-
-    function deleteCategory(idx) {
-        if(confirm('确定删除整个分类吗？')) {
-            data.splice(idx, 1);
-            render();
-        }
-    }
-
-    function save() {
-        localStorage.setItem('ai_music_nav', JSON.stringify(data));
-        document.getElementById('configTextarea').value = JSON.stringify(data, null, 2);
-    }
-
-    function toggleConfig() {
-        const area = document.getElementById('configSection');
-        area.style.display = (area.style.display === 'block') ? 'none' : 'block';
-    }
-
-    render();
+    function deleteSite(cIdx, sIdx) { if(confirm('删除此项？')) { db.categories[cIdx].sites.splice(sIdx, 1); render(); pushToGist(); } }
+    function deleteCat(idx) { if(confirm('删除整个分类？')) { db.categories.splice(idx, 1); render(); pushToGist(); } }
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    init();
 </script>
-
 </body>
 </html>
