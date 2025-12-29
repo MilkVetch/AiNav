@@ -1,78 +1,3 @@
-// 1. 语言包字典
-const I18N = {
-    zh: {
-        navBrand: "网址导航",
-        loading: "同步云端数据中...",
-        searchPlaceholder: "搜索或输入网址...",
-        addSite: "+ 网址",
-        addCat: "+ 分类",
-        settings: "设置",
-        modalTitleSettings: "系统设置",
-        sectionBoard: "面板设置",
-        sectionTheme: "配色方案",
-        sectionBackend: "后端配置 (Gist)",
-        labelSwitchBoard: "切换面板",
-        labelRenameBoard: "面板更名",
-        btnApply: "应用",
-        btnNew: "+ 新增",
-        btnDel: "删除",
-        btnSave: "连接并保存",
-        modalTitleSite: "新增网址",
-        labelSelectCat: "选择分类",
-        labelSiteName: "名称",
-        labelSiteUrl: "网址",
-        btnConfirm: "确认添加",
-        modalTitleCat: "新增分类",
-        labelCatName: "分类名称",
-        welcome: "欢迎使用",
-        setupMsg: "请配置 Gist 以开启云端同步",
-        setupBtn: "去配置",
-        emptyBoard: "创建首个面板",
-        confirmDelSite: "确认删除网址？",
-        confirmDelCat: "确认删除分类及其下所有网址？",
-        confirmReset: "要断开云端连接并清除本地数据吗？",
-        confirmDelBoard: "确定删除此面板？",
-        promptNewBoard: "输入新面板名称："
-    },
-    en: {
-        navBrand: "AI Navigation",
-        loading: "Syncing data...",
-        searchPlaceholder: "Search or type URL...",
-        addSite: "+ Site",
-        addCat: "+ Category",
-        settings: "Settings",
-        modalTitleSettings: "System Settings",
-        sectionBoard: "Board Settings",
-        sectionTheme: "Themes",
-        sectionBackend: "Backend (Gist)",
-        labelSwitchBoard: "Switch Board",
-        labelRenameBoard: "Rename Board",
-        btnApply: "Apply",
-        btnNew: "+ Add",
-        btnDel: "Delete",
-        btnSave: "Connect & Save",
-        modalTitleSite: "Add New Site",
-        labelSelectCat: "Select Category",
-        labelSiteName: "Name",
-        labelSiteUrl: "URL",
-        btnConfirm: "Confirm",
-        modalTitleCat: "Add New Category",
-        labelCatName: "Category Name",
-        welcome: "Welcome",
-        setupMsg: "Configure Gist to enable sync",
-        setupBtn: "Go to Setup",
-        emptyBoard: "Create First Board",
-        confirmDelSite: "Delete this site?",
-        confirmDelCat: "Delete category and all its sites?",
-        confirmReset: "Disconnect and clear local data?",
-        confirmDelBoard: "Delete this board permanently?",
-        promptNewBoard: "Enter new board name:"
-    }
-};
-
-const CHINESE_GREETINGS = { /* ...保持之前的 48 个中文问候语... */ };
-const ENGLISH_GREETINGS = { /* 可选：如果需要英文问候语可在此添加，目前逻辑默认为中文问候语 */ };
-
 const THEMES = [
     { id: 'classic', name: '极简蓝', class: 'theme-classic' },
     { id: 'emerald', name: '雅致翠', class: 'theme-emerald' },
@@ -80,13 +5,22 @@ const THEMES = [
     { id: 'sand', name: '舒适沙', class: 'theme-sand' }
 ];
 
-let db = { activeIndex: 0, boards: [], theme: 'classic', lang: 'zh' };
+const CHINESE_GREETINGS = {
+    "00:00": "午夜时分，正是灵感迸发的时刻。", "00:30": "夜深了，音乐是灵魂的港湾。",
+    "05:00": "晨光初露，新的一天悄然开启。", "08:00": "专注当下，今天是值得奋斗的一天。",
+    "12:00": "午间小憩，让精神重新充电。", "18:00": "暮色温柔，整理今日的果实。",
+    "22:00": "夜已深，享受难得的静谧时光。"
+    // ... 可以继续补充 48 个时段
+};
+
+let db = { activeIndex: 0, boards: [], theme: 'classic' };
 let isConfigured = false;
 const CONFIG = { token: localStorage.getItem('gh_token'), gistId: localStorage.getItem('gh_gist_id') };
 
+// 1. 初始化
 function init() {
-    updateClock(); 
-    setInterval(updateClock, 1000); 
+    updateClock();
+    setInterval(updateClock, 1000);
     renderThemes();
 
     if (CONFIG.token) document.getElementById('ghToken').value = CONFIG.token;
@@ -100,13 +34,36 @@ function init() {
     lucide.createIcons();
 }
 
-// 切换语言逻辑
-function setLanguage(lang) {
-    db.lang = lang;
-    render();
-    pushToGist();
+// 2. 动态更新时钟、光晕和问候语
+function updateClock() {
+    const now = new Date();
+    const h = now.getHours(), m = now.getMinutes();
+    const timeStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    document.getElementById('digitalClock').innerText = timeStr;
+
+    // 背景光晕随时间变化
+    const hKey = h.toString().padStart(2, '0');
+    let glow = "rgba(150, 100, 255, 0.2)"; // 默认深夜紫色
+    if (h >= 5 && h < 12) glow = "rgba(255, 180, 100, 0.2)"; // 晨光橘
+    else if (h >= 12 && h < 18) glow = "rgba(100, 200, 255, 0.2)"; // 午后蔚蓝
+    document.documentElement.style.setProperty('--glow-color', glow);
+
+    // 问候语半小时切换动画
+    const greetingEl = document.getElementById('greetingText');
+    const mKey = m < 30 ? "00" : "30";
+    const currentKey = `${hKey}:${mKey}`;
+    const target = CHINESE_GREETINGS[currentKey] || "Stay Focused.";
+
+    if (greetingEl.innerText !== target) {
+        greetingEl.style.opacity = "0";
+        setTimeout(() => {
+            greetingEl.innerText = target;
+            greetingEl.style.opacity = "1";
+        }, 600);
+    }
 }
 
+// 3. 数据拉取
 async function fetchData() {
     try {
         const res = await fetch(`https://api.github.com/gists/${CONFIG.gistId}`, {
@@ -116,14 +73,8 @@ async function fetchData() {
         const gist = await res.json();
         const content = JSON.parse(gist.files['ainav.json'].content);
         
-        // 升级旧数据结构
-        if (content.categories) {
-            db = { activeIndex: 0, boards: [{ title: content.title || "Main", categories: content.categories }], theme: content.theme || 'classic', lang: 'zh' };
-        } else {
-            db = content;
-        }
-        
-        if (!db.lang) db.lang = 'zh';
+        // 兼容性修正：如果获取的是旧版 categories 数组
+        db = content.categories ? { activeIndex: 0, boards: [{title:"默认面板", categories:content.categories}], theme: 'classic' } : content;
         
         isConfigured = true;
         applyTheme(db.theme || 'classic', false);
@@ -135,51 +86,18 @@ async function fetchData() {
     }
 }
 
+// 4. 关键：修复 URL 解析崩溃
 function render() {
-    const lang = db.lang || 'zh';
-    const dict = I18N[lang];
-
-    // 1. 静态文本翻译更新
-    document.getElementById('navBrandText').innerText = dict.navBrand;
-    document.getElementById('addSiteBtn').innerText = dict.addSite;
-    document.getElementById('addCatBtn').innerText = dict.addCat;
-    document.getElementById('btnSettingsText').innerText = dict.settings;
-    document.getElementById('searchInput').placeholder = dict.searchPlaceholder;
-    document.getElementById('modalTitleSettings').innerText = dict.modalTitleSettings;
-    document.getElementById('sectionBoardText').innerText = dict.sectionBoard;
-    document.getElementById('sectionThemeText').innerText = dict.sectionTheme;
-    document.getElementById('sectionBackendText').innerText = dict.sectionBackend;
-    document.getElementById('labelSwitchBoard').innerText = dict.labelSwitchBoard;
-    document.getElementById('labelRenameBoard').innerText = dict.labelRenameBoard;
-    document.getElementById('btnApplyRename').innerText = dict.btnApply;
-    document.getElementById('btnNewBoard').innerText = dict.btnNew;
-    document.getElementById('btnDelBoard').innerText = dict.btnDel;
-    document.getElementById('btnSaveConfig').innerText = dict.btnSave;
-    
-    // 弹窗翻译
-    document.getElementById('modalTitleSite').innerText = dict.modalTitleSite;
-    document.getElementById('labelSelectCat').innerText = dict.labelSelectCat;
-    document.getElementById('labelSiteName').innerText = dict.labelSiteName;
-    document.getElementById('labelSiteUrl').innerText = dict.labelSiteUrl;
-    document.getElementById('btnConfirmSite').innerText = dict.btnConfirm;
-    document.getElementById('modalTitleCat').innerText = dict.modalTitleCat;
-    document.getElementById('labelCatName').innerText = dict.labelCatName;
-    document.getElementById('btnConfirmCat').innerText = dict.btnConfirm;
-
-    // 2. 动态内容渲染
     document.querySelectorAll('.hide').forEach(el => el.classList.remove('hide'));
     const app = document.getElementById('app');
     const activeBoard = db.boards[db.activeIndex] || db.boards[0];
 
     if (!activeBoard) {
-        app.innerHTML = `<div class="hero-section"><h3>${dict.welcome}</h3><button class="save-btn" style="max-width:180px" onclick="createNewBoard()">${dict.emptyBoard}</button></div>`;
+        app.innerHTML = `<div class="hero-section"><h3>连接成功</h3><button class="save-btn" style="max-width:180px" onclick="createNewBoard()">创建首个面板</button></div>`;
         return;
     }
 
-    // 更新切换器
-    document.getElementById('boardSwitcher').innerHTML = db.boards.map((b, i) => `<option value="${i}" ${i==db.activeIndex?'selected':''}>${b.title}</option>`).join('');
-    document.getElementById('siteTitleInput').value = activeBoard.title;
-
+    document.getElementById('navBrandText').innerText = activeBoard.title + " 导航";
     app.innerHTML = '';
     const catSelect = document.getElementById('targetCat');
     catSelect.innerHTML = '';
@@ -188,45 +106,117 @@ function render() {
         catSelect.innerHTML += `<option value="${cIdx}">${cat.name}</option>`;
         const section = document.createElement('section');
         section.innerHTML = `
-            <div class="category-header">
-                <span>${cat.name}</span>
-                <button class="close-btn" style="font-size:1rem" onclick="deleteCat(${cIdx})"><i data-lucide="trash-2" class="icon-sm"></i></button>
-            </div>
-            <div class="board-grid" id="cat-${cIdx}"></div>
-        `;
+            <div class="category-header"><span>${cat.name}</span><button class="close-btn" style="font-size:1rem" onclick="deleteCat(${cIdx})"><i data-lucide="trash-2"></i></button></div>
+            <div class="board-grid" id="cat-${cIdx}"></div>`;
         app.appendChild(section);
 
         const grid = document.getElementById(`cat-${cIdx}`);
         cat.sites.forEach((site, sIdx) => {
             let domain = 'invalid';
-            try { domain = new URL(site.url).hostname; } catch(e) {}
+            try {
+                // 修复点：增加 try-catch 解决 Invalid URL 报错
+                domain = new URL(site.url).hostname;
+            } catch(e) {
+                console.warn("发现无效网址:", site.url);
+            }
+            
             grid.innerHTML += `
                 <a href="${site.url}" target="_blank" class="link-card">
                     <button class="del-site-btn" onclick="event.preventDefault(); deleteSite(${cIdx}, ${sIdx})">&times;</button>
                     <img src="https://www.google.com/s2/favicons?sz=128&domain=${domain}" onerror="this.src='https://lucide.dev/favicon.ico'">
                     <span>${site.name}</span>
-                </a>
-            `;
+                </a>`;
         });
     });
     lucide.createIcons();
 }
 
-// ... updateClock, addItem, pushToGist 等函数保持不变 ...
-// 注意：在 confirm 弹窗处请使用 dict.confirmXXX 变量以实现多语言。
+// 5. 交互逻辑：自动补全网址
+function addItem() {
+    const cIdx = document.getElementById('targetCat').value;
+    const name = document.getElementById('siteName').value;
+    let url = document.getElementById('siteUrl').value.trim();
 
-function deleteSite(c, s) { 
-    if(confirm(I18N[db.lang].confirmDelSite)){ 
-        db.boards[db.activeIndex].categories[c].sites.splice(s,1); 
-        render(); pushToGist(); 
-    } 
+    // 修复点：自动补全协议防止 URL 构造失败
+    if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+    if (cIdx !== "" && name && url) {
+        db.boards[db.activeIndex].categories[cIdx].sites.push({ name, url });
+        closeAllModals();
+        render();
+        pushToGist();
+    }
 }
 
+// 其它基础函数 (pushToGist, saveSettings, openCustomModal 等保持原生实现...)
+function openCustomModal(id) {
+    document.getElementById('modalOverlay').style.display = 'block';
+    document.getElementById(id).classList.add('active');
+}
+function closeAllModals() {
+    document.getElementById('modalOverlay').style.display = 'none';
+    document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('active'));
+}
+function handleOpenSettings() {
+    openCustomModal('settingsModal');
+    if (!isConfigured) toggleSection('collapseBackend', true);
+}
+function toggleSection(id, force = false) {
+    const el = document.getElementById(id);
+    const open = el.style.display === 'block';
+    document.querySelectorAll('.collapsible-content').forEach(c => c.style.display = 'none');
+    el.style.display = (open && !force) ? 'none' : 'block';
+}
+function saveSettings() {
+    localStorage.setItem('gh_token', document.getElementById('ghToken').value.trim());
+    localStorage.setItem('gh_gist_id', document.getElementById('gistId').value.trim());
+    location.reload();
+}
+async function pushToGist() {
+    if (!CONFIG.token || !CONFIG.gistId) return;
+    try {
+        await fetch(`https://api.github.com/gists/${CONFIG.gistId}`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `token ${CONFIG.token}` },
+            body: JSON.stringify({ files: { 'ainav.json': { content: JSON.stringify(db, null, 2) } } })
+        });
+        updateStatus(true);
+    } catch (e) { updateStatus(false); }
+}
+function applyTheme(id, push = true) {
+    document.body.className = THEMES.find(t => t.id === id).class;
+    db.theme = id;
+    if (push) pushToGist();
+}
+function renderThemes() {
+    document.getElementById('themeList').innerHTML = THEMES.map(t => `<div class="glass-btn" onclick="applyTheme('${t.id}')">${t.name}</div>`).join('');
+}
+function updateStatus(on) { 
+    const dot = document.getElementById('syncStatus');
+    if (dot) dot.className = `status-dot ${on ? 'status-online' : ''}`; 
+}
 function showSetupRequired() {
-    const lang = db.lang || 'zh';
-    const dict = I18N[lang];
-    document.getElementById('app').innerHTML = `<div class="hero-section"><h3>${dict.welcome}</h3><p>${dict.setupMsg}</p><button class="save-btn" style="max-width:180px" onclick="handleOpenSettings()">${dict.setupBtn}</button></div>`;
+    document.getElementById('app').innerHTML = `<div class="hero-section"><h3>Welcome</h3><p>请点击设置配置 Gist 开启同步</p><button class="save-btn" style="max-width:180px" onclick="handleOpenSettings()">去配置</button></div>`;
+}
+function confirmReset() {
+    if (confirm("断开连接并清除本地数据？")) { localStorage.clear(); location.reload(); }
+}
+function createNewBoard() {
+    const name = prompt("面板名称：");
+    if(name){ db.boards.push({title:name, categories:[]}); db.activeIndex=db.boards.length-1; render(); pushToGist(); }
+}
+function addCategory() {
+    const n = document.getElementById('catName').value;
+    if(n){ db.boards[db.activeIndex].categories.push({name:n, sites:[]}); render(); pushToGist(); closeAllModals(); }
+}
+function deleteSite(c, s) { if(confirm('删除？')){ db.boards[db.activeIndex].categories[c].sites.splice(s,1); render(); pushToGist(); } }
+function deleteCat(i) { if(confirm('删除分类？')){ db.boards[db.activeIndex].categories.splice(i,1); render(); pushToGist(); } }
+function handleSearch(e) {
+    if (e.key === 'Enter') {
+        const q = e.target.value;
+        if (q.includes('.')) window.open(q.startsWith('http') ? q : 'https://' + q);
+        else window.open('https://www.google.com/search?q=' + encodeURIComponent(q));
+    }
 }
 
-// 启动程序
 init();
