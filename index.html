@@ -16,21 +16,28 @@
                 <span id="navBrandText" class="navbar-brand mb-0 h1" style="font-size: 1.1rem;">网址导航</span>
                 <span id="syncStatus" class="ms-2 status-dot bg-danger shadow-sm"></span>
             </div>
+            
             <div class="d-flex gap-2 text-nowrap">
                 <button id="addSiteBtn" class="btn btn-link text-white text-decoration-none btn-sm d-none" onclick="openModal('siteModal')">+ 网址</button>
                 <button id="addCatBtn" class="btn btn-link text-white text-decoration-none btn-sm d-none" onclick="openModal('catModal')">+ 分类</button>
-                <button class="btn btn-theme-accent btn-sm d-flex align-items-center" onclick="openModal('settingsModal')">
-                    <i data-lucide="settings" class="me-1 icon-sm"></i> 设置
-                </button>
+                
+                <div class="btn-group">
+                    <button class="btn btn-theme-accent btn-sm d-flex align-items-center" onclick="openModal('settingsModal')">
+                        <i data-lucide="settings" class="me-1 icon-sm"></i> 设置
+                    </button>
+                    <button id="logoutBtn" class="btn btn-outline-light btn-sm d-none" onclick="resetConfig()" title="断开连接">
+                        <i data-lucide="log-out" class="icon-sm"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </nav>
 
     <div class="container my-5 flex-grow-1">
         <div id="app">
-            <div class="text-center py-5">
+            <div id="loadingState" class="text-center py-5">
                 <div class="spinner-border text-theme-primary" role="status"></div>
-                <p class="mt-3 text-muted">正在加载中...</p>
+                <p class="mt-3 text-muted">正在尝试连接云端数据...</p>
             </div>
         </div>
     </div>
@@ -39,7 +46,7 @@
         © 2025 Khee. Crafted with ♥ for AI lovers.
     </footer>
 
-    <div class="modal fade" id="settingsModal" tabindex="-1">
+    <div class="modal fade" id="settingsModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-light">
@@ -57,16 +64,16 @@
                             </h2>
                             <div id="collapseBoards" class="accordion-collapse collapse show" data-bs-parent="#settingsAccordion">
                                 <div class="accordion-body">
-                                    <label class="form-label small fw-bold">切换面板</label>
+                                    <label class="form-label small fw-bold">切换至</label>
                                     <select id="boardSwitcher" class="form-select mb-3" onchange="switchBoard(this.value)"></select>
-                                    <label class="form-label small fw-bold">当前面板名</label>
+                                    <label class="form-label small fw-bold">当前面板更名</label>
                                     <div class="input-group mb-3">
-                                        <input type="text" id="siteTitleInput" class="form-control">
+                                        <input type="text" id="siteTitleInput" class="form-control" placeholder="输入名称">
                                         <button class="btn btn-outline-primary" onclick="renameBoard()">应用</button>
                                     </div>
                                     <div class="d-flex gap-2">
                                         <button class="btn btn-sm btn-outline-success w-100" onclick="createNewBoard()">+ 新增面板</button>
-                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteCurrentBoard()">删除此面板</button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteCurrentBoard()">删除此套</button>
                                     </div>
                                 </div>
                             </div>
@@ -85,24 +92,23 @@
                             </div>
                         </div>
 
-                        <div class="accordion-item">
+                        <div class="accordion-item border-bottom">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBackend">
-                                    <i data-lucide="database" class="me-2 icon-sm"></i> 后端配置 (Gist)
+                                    <i data-lucide="database" class="me-2 icon-sm"></i> 后端配置 (GitHub Gist)
                                 </button>
                             </h2>
                             <div id="collapseBackend" class="accordion-collapse collapse" data-bs-parent="#settingsAccordion">
                                 <div class="accordion-body">
                                     <div class="mb-3">
-                                        <label class="form-label small fw-bold">GitHub Token</label>
+                                        <label class="form-label small fw-bold text-muted">GitHub Token</label>
                                         <input type="password" id="ghToken" class="form-control" placeholder="ghp_xxxxxx">
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label small fw-bold">Gist ID</label>
-                                        <input type="text" id="gistId" class="form-control" placeholder="URL 末尾的 32 位字符">
+                                        <label class="form-label small fw-bold text-muted">Gist ID</label>
+                                        <input type="text" id="gistId" class="form-control" placeholder="32位长字符">
                                     </div>
-                                    <button class="btn btn-primary w-100 mb-2" onclick="saveSettings()">保存并同步</button>
-                                    <button class="btn btn-link text-danger w-100 btn-sm text-decoration-none" onclick="resetConfig()">断开连接并清空</button>
+                                    <button class="btn btn-primary w-100" onclick="saveSettings()">连接并保存</button>
                                 </div>
                             </div>
                         </div>
@@ -111,6 +117,31 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="siteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0">
+                <div class="modal-header bg-light"><h5 class="modal-title">新增网址</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <label class="form-label small fw-bold">选择分类</label><select id="targetCat" class="form-select mb-3"></select>
+                    <label class="form-label small fw-bold">名称</label><input type="text" id="siteName" class="form-control mb-3">
+                    <label class="form-label small fw-bold">网址</label><input type="text" id="siteUrl" class="form-control">
+                </div>
+                <div class="modal-footer"><button class="btn btn-theme-primary w-100" onclick="addItem()">确认添加</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="catModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0">
+                <div class="modal-header bg-light"><h5 class="modal-title">新增分类</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body"><label class="form-label small fw-bold">分类名称</label><input type="text" id="catName" class="form-control"></div>
+                <div class="modal-footer"><button class="btn btn-theme-primary w-100" onclick="addCategory()">确认添加</button></div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="script.js"></script>
