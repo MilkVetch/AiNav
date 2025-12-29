@@ -14,16 +14,17 @@
         <div class="nav-container">
             <div class="nav-brand" onclick="confirmReset()">
                 <span id="navBrandText">网址导航</span>
-                <div id="statusClickArea" title="点击断开连接">
+                <div id="statusClickArea" title="Disconnect">
                     <span id="syncStatus" class="status-dot"></span>
                 </div>
             </div>
             
             <div class="nav-actions">
-                <button id="addSiteBtn" class="glass-btn hide" onclick="openCustomModal('siteModal')">+ 网址</button>
-                <button id="addCatBtn" class="glass-btn hide" onclick="openCustomModal('catModal')">+ 分类</button>
+                <button id="addSiteBtn" class="glass-btn hide" onclick="openCustomModal('siteModal')"></button>
+                <button id="addCatBtn" class="glass-btn hide" onclick="openCustomModal('catModal')"></button>
                 <button class="glass-btn primary" onclick="handleOpenSettings()">
-                    <i data-lucide="settings" class="icon-sm"></i> <span>设置</span>
+                    <i data-lucide="settings" class="icon-sm"></i>
+                    <span id="btnSettingsText">设置</span>
                 </button>
             </div>
         </div>
@@ -32,22 +33,22 @@
     <main class="content-wrapper">
         <header class="hero-section">
             <h1 id="digitalClock">00:00</h1>
-            <p id="greetingText">正在准备...</p>
+            <p id="greetingText">...</p>
             <div class="search-bar">
                 <i data-lucide="search"></i>
-                <input type="text" id="searchInput" placeholder="搜索或输入网址..." onkeypress="handleSearch(event)">
+                <input type="text" id="searchInput" onkeypress="handleSearch(event)">
             </div>
         </header>
 
         <div id="app">
             <div class="loading-state">
                 <div class="spinner"></div>
-                <p>同步中...</p>
+                <p id="loadingText">Syncing...</p>
             </div>
         </div>
     </main>
 
-    <footer class="footer">
+    <footer class="footer" id="footerText">
         © 2025 Khee. Crafted with ♥ for AI lovers.
     </footer>
 
@@ -55,72 +56,89 @@
 
     <div class="custom-modal" id="settingsModal">
         <div class="modal-header">
-            <h3>系统设置</h3>
+            <button class="back-btn hide" id="settingsBackBtn" onclick="showSettingsHome()">
+                <i data-lucide="chevron-left"></i>
+            </button>
+            <h3 id="modalTitleSettings">系统设置</h3>
             <button class="close-btn" onclick="closeAllModals()">&times;</button>
         </div>
-        <div class="modal-body">
-            <div class="collapsible-section hide" id="boardSettingItem">
-                <div class="collapsible-header" onclick="toggleSection('collapseBoards')">
-                    <span>面板设置</span> <i data-lucide="layers" class="icon-sm"></i>
+        <div class="modal-body p-0">
+            <div id="settingsHome">
+                <div class="setting-item" onclick="showSettingPage('pageLang')">
+                    <div class="item-label"><i data-lucide="languages"></i> <span id="menuLangText">语言设置</span></div>
+                    <i data-lucide="chevron-right" class="arrow"></i>
                 </div>
-                <div class="collapsible-content" id="collapseBoards">
-                    <label class="field-label">切换面板</label>
+                <div class="setting-divider"></div>
+                <div class="setting-item hide" id="menuBoardItem" onclick="showSettingPage('pageBoards')">
+                    <div class="item-label"><i data-lucide="layers"></i> <span id="menuBoardText">面板管理</span></div>
+                    <i data-lucide="chevron-right" class="arrow"></i>
+                </div>
+                <div class="setting-divider hide" id="menuBoardDivider"></div>
+                <div class="setting-item" onclick="showSettingPage('pageBackend')">
+                    <div class="item-label"><i data-lucide="database"></i> <span id="menuBackendText">后端配置</span></div>
+                    <i data-lucide="chevron-right" class="arrow"></i>
+                </div>
+            </div>
+
+            <div id="pageLang" class="setting-detail-page hide">
+                <div class="detail-container">
+                    <label class="field-label" id="labelLangSwitch">选择语言 / Language</label>
+                    <div class="btn-row">
+                        <button class="action-btn-small flex-1" onclick="setLanguage('zh')">简体中文</button>
+                        <button class="action-btn-small flex-1" onclick="setLanguage('en')">English</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="pageBoards" class="setting-detail-page hide">
+                <div class="detail-container">
+                    <label class="field-label" id="labelSwitchBoard">切换面板</label>
                     <select id="boardSwitcher" class="custom-select" onchange="switchBoard(this.value)"></select>
-                    <label class="field-label">面板更名</label>
+                    
+                    <label class="field-label" id="labelRenameBoard">重命名当前面板</label>
                     <div class="input-group">
                         <input type="text" id="siteTitleInput" class="custom-input">
-                        <button class="action-btn-small" onclick="renameBoard()">应用</button>
+                        <button class="action-btn-small" id="btnApplyRename" onclick="renameBoard()">应用</button>
                     </div>
+                    
                     <div class="btn-row">
-                        <button class="action-btn success" onclick="createNewBoard()">+ 新增</button>
-                        <button class="action-btn danger" onclick="deleteCurrentBoard()">删除</button>
+                        <button class="action-btn success" id="btnNewBoard" onclick="createNewBoard()">+ 新增</button>
+                        <button class="action-btn danger" id="btnDelBoard" onclick="deleteCurrentBoard()">删除</button>
                     </div>
                 </div>
             </div>
 
-            <div class="collapsible-section hide" id="themeSettingItem">
-                <div class="collapsible-header" onclick="toggleSection('collapseThemes')">
-                    <span>配色方案</span> <i data-lucide="palette" class="icon-sm"></i>
-                </div>
-                <div class="collapsible-content" id="collapseThemes">
-                    <div class="theme-grid" id="themeList"></div>
-                </div>
-            </div>
-
-            <div class="collapsible-section active" id="backendSettingItem">
-                <div class="collapsible-header" onclick="toggleSection('collapseBackend')">
-                    <span>后端配置 (Gist)</span> <i data-lucide="database" class="icon-sm"></i>
-                </div>
-                <div class="collapsible-content" id="collapseBackend" style="display: block;">
+            <div id="pageBackend" class="setting-detail-page hide">
+                <div class="detail-container">
                     <div class="input-field">
                         <label>GitHub Token</label>
-                        <input type="password" id="ghToken" class="custom-input">
+                        <input type="password" id="ghToken" class="custom-input" placeholder="ghp_xxxxxx">
                     </div>
                     <div class="input-field">
                         <label>Gist ID</label>
-                        <input type="text" id="gistId" class="custom-input">
+                        <input type="text" id="gistId" class="custom-input" placeholder="32位 Gist ID">
                     </div>
-                    <button class="save-btn" onclick="saveSettings()">连接并保存</button>
+                    <button class="save-btn" id="btnSaveConfig" onclick="saveSettings()">保存并同步</button>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="custom-modal" id="siteModal">
-        <div class="modal-header"><h3>新增网址</h3><button class="close-btn" onclick="closeAllModals()">&times;</button></div>
+        <div class="modal-header"><h3 id="modalTitleSite">新增网址</h3><button class="close-btn" onclick="closeAllModals()">&times;</button></div>
         <div class="modal-body">
-            <div class="input-field"><label>选择分类</label><select id="targetCat" class="custom-select"></select></div>
-            <div class="input-field"><label>名称</label><input type="text" id="siteName" class="custom-input"></div>
-            <div class="input-field"><label>网址</label><input type="text" id="siteUrl" class="custom-input" placeholder="www.google.com"></div>
-            <button class="save-btn" onclick="addItem()">确认添加</button>
+            <div class="input-field"><label id="labelSelectCat">选择分类</label><select id="targetCat" class="custom-select"></select></div>
+            <div class="input-field"><label id="labelSiteName">名称</label><input type="text" id="siteName" class="custom-input"></div>
+            <div class="input-field"><label id="labelSiteUrl">网址</label><input type="text" id="siteUrl" class="custom-input" placeholder="www.google.com"></div>
+            <button class="save-btn" id="btnConfirmSite" onclick="addItem()">确认</button>
         </div>
     </div>
 
     <div class="custom-modal" id="catModal">
-        <div class="modal-header"><h3>新增分类</h3><button class="close-btn" onclick="closeAllModals()">&times;</button></div>
+        <div class="modal-header"><h3 id="modalTitleCat">新增分类</h3><button class="close-btn" onclick="closeAllModals()">&times;</button></div>
         <div class="modal-body">
-            <div class="input-field"><label>分类名称</label><input type="text" id="catName" class="custom-input"></div>
-            <button class="save-btn" onclick="addCategory()">确认添加</button>
+            <div class="input-field"><label id="labelCatName">分类名称</label><input type="text" id="catName" class="custom-input"></div>
+            <button class="save-btn" id="btnConfirmCat" onclick="addCategory()">确认</button>
         </div>
     </div>
 

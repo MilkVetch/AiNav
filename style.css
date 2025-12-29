@@ -1,55 +1,111 @@
 :root {
     --glass-bg: rgba(255, 255, 255, 0.06);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-blur: 20px;
-    --text-main: #fff;
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-blur: 24px;
+    --text-main: #ffffff;
     --text-dim: rgba(255, 255, 255, 0.5);
     --primary: #3b82f6;
     --glow-color: rgba(59, 130, 246, 0.15);
+    --divider: rgba(255, 255, 255, 0.1);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Inter', sans-serif; background: #0b0f1a; color: var(--text-main); min-height: 100vh; overflow-x: hidden; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: #0b0f1a; color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
 
-.bg-glow {
-    position: fixed; top: -15%; left: -10%; width: 60%; height: 60%;
-    background: radial-gradient(circle, var(--glow-color) 0%, transparent 70%);
-    z-index: -1; transition: background 3s ease;
+.bg-glow { position: fixed; top: -15%; left: -10%; width: 60%; height: 60%; background: radial-gradient(circle, var(--glow-color) 0%, transparent 70%); z-index: -1; transition: background 3s ease; }
+
+/* 导航栏 */
+.navbar { padding: 1.5rem 2rem; position: sticky; top: 0; z-index: 100; }
+.nav-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+.nav-brand { display: flex; align-items: center; cursor: pointer; font-size: 1.1rem; font-weight: 600; gap: 8px; }
+
+#statusClickArea { display: flex; align-items: center; padding: 4px; cursor: pointer; transition: 0.2s; }
+#statusClickArea:hover { transform: scale(1.1); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; transition: 0.3s; }
+.status-online { background: #10b981; box-shadow: 0 0 12px #10b981; }
+
+.nav-actions { display: flex; gap: 10px; align-items: center; }
+
+/* 统一按钮高度与图标大小 */
+.glass-btn {
+    height: 40px;                 /* 统一高度 */
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+    padding: 0 1.2rem;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: 0.2s ease;
 }
-
-.nav-container { max-width: 1200px; margin: 0 auto; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-.nav-brand { display: flex; align-items: center; cursor: pointer; font-weight: 600; font-size: 1.1rem; }
-.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; margin-left: 8px; }
-.status-online { background: #10b981; box-shadow: 0 0 10px #10b981; }
-
-.glass-btn { background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur)); border: 1px solid var(--glass-border); color: white; padding: 0.6rem 1.2rem; border-radius: 10px; cursor: pointer; }
+.glass-btn:hover { background: rgba(255,255,255,0.12); transform: translateY(-1px); }
 .glass-btn.primary { background: var(--primary); border: none; }
 
+.icon-sm { width: 16px !important; height: 16px !important; } /* 缩小图标比例 */
+
+/* 英雄区域 */
 .hero-section { text-align: center; padding: 5rem 0 3rem; min-height: 320px; }
-#digitalClock { font-size: 5.5rem; font-weight: 200; margin-bottom: 0.5rem; }
-#greetingText { color: var(--text-dim); margin-bottom: 2.5rem; transition: opacity 0.6s ease; }
+#digitalClock { font-size: 5.5rem; font-weight: 200; margin-bottom: 0.5rem; letter-spacing: -2px; }
+#greetingText { color: var(--text-dim); margin-bottom: 2.5rem; font-size: 1.05rem; transition: opacity 0.6s ease; height: 1.5rem; }
 
 .search-bar { max-width: 480px; margin: 0 auto; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 30px; padding: 0.7rem 1.4rem; display: flex; align-items: center; }
 .search-bar input { background: none; border: none; color: white; width: 100%; margin-left: 12px; font-size: 1rem; outline: none; }
 
-.content-wrapper { max-width: 1200px; margin: 0 auto; padding: 0 2rem 4rem; }
-.board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1.2rem; }
-.category-header { font-size: 1rem; font-weight: 600; margin: 3rem 0 1.2rem; border-left: 3px solid var(--primary); padding-left: 1rem; display: flex; justify-content: space-between; }
+/* 详情设置列表 */
+.setting-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1.2rem 1.5rem; cursor: pointer; transition: 0.2s;
+}
+.setting-item:hover { background: rgba(255,255,255,0.03); }
+.setting-item .item-label { display: flex; align-items: center; gap: 12px; font-size: 0.95rem; }
+.setting-item .item-label i { width: 18px; color: var(--text-dim); }
+.setting-item .arrow { width: 16px; color: var(--text-dim); opacity: 0.5; }
+.setting-divider { height: 1px; background: var(--divider); margin: 0 1.5rem; }
 
-.link-card { background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur)); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.4rem 1rem; text-align: center; position: relative; text-decoration: none; color: inherit; display: block; }
-.link-card:hover { transform: translateY(-5px); border-color: var(--primary); }
-.link-card img { width: 38px; height: 38px; margin-bottom: 0.7rem; border-radius: 8px; object-fit: contain; }
-.link-card span { display: block; font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.setting-detail-page { padding: 0; animation: slideIn 0.3s ease; }
+@keyframes slideIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+.detail-container { padding: 1.5rem; }
 
+.back-btn { background: none; border: none; color: var(--text-main); cursor: pointer; margin-right: 10px; padding: 5px; display: flex; align-items: center; }
+
+/* 弹窗基础 */
 .custom-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: none; z-index: 1000; }
-.custom-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 420px; background: #161b26; border-radius: 24px; padding: 1.8rem; z-index: 1001; display: none; }
-.custom-modal.active { display: block; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-.close-btn { background: none; border: none; color: white; cursor: pointer; font-size: 1.5rem; }
-.custom-input, .custom-select { width: 100%; background: #0b0f1a; border: 1px solid var(--glass-border); color: white; padding: 0.8rem; border-radius: 10px; margin-top: 10px; }
-.save-btn { width: 100%; padding: 0.9rem; background: var(--primary); border: none; border-radius: 12px; color: white; cursor: pointer; margin-top: 1.5rem; }
+.custom-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -45%) scale(0.95); width: 90%; max-width: 400px; background: #161b26; border: 1px solid var(--glass-border); border-radius: 24px; padding: 0; overflow: hidden; z-index: 1001; display: none; opacity: 0; transition: 0.3s ease; }
+.custom-modal.active { display: block; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.modal-header { display: flex; align-items: center; padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--divider); }
+.modal-header h3 { font-size: 1.1rem; flex-grow: 1; text-align: center; }
+.close-btn { background: none; border: none; color: var(--text-dim); font-size: 1.6rem; cursor: pointer; padding-left: 10px; }
+
+.custom-input, .custom-select { width: 100%; background: #0b0f1a; border: 1px solid var(--glass-border); color: white; padding: 0.8rem; border-radius: 10px; outline: none; font-size: 0.9rem; margin-top: 6px; }
+.field-label { display: block; font-size: 0.75rem; color: var(--text-dim); margin-top: 1rem; text-transform: uppercase; }
+
+.save-btn { width: 100%; padding: 0.9rem; background: var(--primary); border: none; border-radius: 12px; color: white; cursor: pointer; font-weight: 600; margin-top: 1.5rem; }
+
+.btn-row { display: flex; gap: 8px; margin-top: 12px; }
+.flex-1 { flex: 1; }
+.action-btn-small { background: var(--glass-bg); border: 1px solid var(--glass-border); color: white; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; height: 36px; display: flex; align-items: center; justify-content: center; }
+.action-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; color: white; cursor: pointer; font-size: 0.9rem; }
+.success { background: #10b981; }
+.danger { background: #ef4444; }
+
+.content-wrapper { max-width: 1200px; margin: 0 auto; padding: 0 2rem 4rem; flex-grow: 1; }
+.board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1.2rem; }
+.category-header { font-size: 0.95rem; font-weight: 600; margin: 3rem 0 1.2rem; border-left: 3px solid var(--primary); padding-left: 1rem; display: flex; justify-content: space-between; align-items: center; }
+
+.link-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.4rem 1rem; text-align: center; position: relative; text-decoration: none; color: inherit; transition: 0.3s; }
+.link-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.1); border-color: var(--primary); }
+.link-card img { width: 32px; height: 32px; margin-bottom: 0.7rem; border-radius: 6px; }
+.link-card span { display: block; font-size: 0.75rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.del-site-btn { position: absolute; top: 6px; right: 6px; opacity: 0; color: #ef4444; border: none; background: none; cursor: pointer; }
+.link-card:hover .del-site-btn { opacity: 1; }
 
 .hide { display: none !important; }
-.footer { padding: 2rem; border-top: 1px solid var(--glass-border); text-align: center; color: var(--text-dim); font-size: 0.8rem; }
-.spinner { width: 28px; height: 28px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 15px; }
+.footer { padding: 2rem; border-top: 1px solid var(--divider); text-align: center; font-size: 0.75rem; color: var(--text-dim); }
+.spinner { width: 24px; height: 24px; border: 2px solid rgba(255,255,255,0.1); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 15px; }
 @keyframes spin { to { transform: rotate(360deg); } }
