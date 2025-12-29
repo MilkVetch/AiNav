@@ -1,0 +1,55 @@
+/* 状态指示灯 */
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.status-online { background-color: #198754 !important; box-shadow: 0 0 8px rgba(25, 135, 84, 0.6); }
+
+/* 导航卡片效果 */
+.nav-card {
+    transition: all 0.25s ease;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: #fff;
+    border-radius: 12px;
+}
+.nav-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 20px rgba(0,0,0,0.08) !important;
+    border-color: #0d6efd;
+}
+
+.nav-card img {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    object-fit: contain;
+}
+
+/* 隐藏删除按钮，仅在悬浮时显示 */
+.delete-item-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    color: #dc3545;
+}
+.nav-card:hover .delete-item-btn {
+    opacity: 1;
+}
+
+/* 分类标题样式 */
+.category-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #334155;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 4px solid #0d6efd;
+    padding-left: 12px;
+}
+
+.icon-sm { width: 16px; height: 16px; }
