@@ -17,10 +17,10 @@
                 <span id="syncStatus" class="ms-2 status-dot bg-danger shadow-sm"></span>
             </a>
             <div class="d-flex gap-2 text-nowrap">
-                <button class="btn btn-outline-light btn-sm" onclick="openModal('siteModal')">
+                <button id="addSiteBtn" class="btn btn-outline-light btn-sm d-none" onclick="openModal('siteModal')">
                     <i data-lucide="plus" class="icon-sm"></i> 网址
                 </button>
-                <button class="btn btn-outline-light btn-sm d-none d-sm-block" onclick="openModal('catModal')">
+                <button id="addCatBtn" class="btn btn-outline-light btn-sm d-none" onclick="openModal('catModal')">
                     <i data-lucide="folder-plus" class="icon-sm"></i> 分类
                 </button>
                 <button class="btn btn-primary btn-sm d-flex align-items-center" onclick="openModal('settingsModal')">
@@ -49,7 +49,7 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label fw-bold small">网站名称 (Title)</label>
-                        <input type="text" id="siteTitleInput" class="form-control" placeholder="例如: AiMusic">
+                        <input type="text" id="siteTitleInput" class="form-control" placeholder="例如: AI 网址导航">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold small">GitHub Token (PAT)</label>

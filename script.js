@@ -37,9 +37,8 @@ async function fetchData() {
     } catch (err) {
         console.error(err);
         updateStatus(false);
-        // 如果加载失败，依然尝试显示现有或默认标题
         render(); 
-        alert('加载失败。请确保 Gist 中有 ainav.json 文件且 Token 正确。');
+        alert('同步失败：请检查 Token 权限和 Gist ID 是否正确，且 Gist 中包含 ainav.json。');
     }
 }
 
@@ -57,7 +56,7 @@ async function pushToGist() {
         });
         updateStatus(true);
     } catch (err) {
-        alert('同步云端失败，请检查网络或 Token 权限');
+        alert('同步至云端失败，请检查网络连接。');
     }
 }
 
@@ -68,7 +67,11 @@ function render() {
     const brand = document.getElementById('navBrandText');
     const pageTitle = document.getElementById('pageTitle');
 
-    // 更新标题
+    // 显示操作按钮
+    document.getElementById('addSiteBtn').classList.remove('d-none');
+    document.getElementById('addCatBtn').classList.remove('d-none');
+    document.getElementById('addCatBtn').classList.add('d-sm-block');
+
     const currentTitle = db.title || "AI 网址导航";
     brand.innerText = currentTitle;
     pageTitle.innerText = currentTitle;
@@ -118,21 +121,27 @@ function render() {
     lucide.createIcons();
 }
 
-// 5. 交互逻辑 (保持不变)
+// 5. 交互逻辑
 async function saveSettings() {
-    const newToken = document.getElementById('ghToken').value;
-    const newGistId = document.getElementById('gistId').value;
-    const newTitle = document.getElementById('siteTitleInput').value;
+    const newToken = document.getElementById('ghToken').value.trim();
+    const newGistId = document.getElementById('gistId').value.trim();
+    const newTitle = document.getElementById('siteTitleInput').value.trim();
+
+    // 关键校验：防止空配置
+    if (!newToken || !newGistId) {
+        alert('请填写 GitHub Token 和 Gist ID 以启用同步功能。');
+        return;
+    }
 
     localStorage.setItem('gh_token', newToken);
     localStorage.setItem('gh_gist_id', newGistId);
     
-    db.title = newTitle;
+    // 更新内存中的标题
+    db.title = newTitle || "AI 网址导航";
     
-    if (newToken && newGistId) {
-        await pushToGist();
-        location.reload();
-    }
+    // 保存并刷新
+    await pushToGist();
+    location.reload();
 }
 
 function addCategory() {
@@ -178,12 +187,14 @@ function updateStatus(isOnline) {
     dot.className = `ms-2 status-dot ${isOnline ? 'status-online' : 'bg-danger'}`;
 }
 
-// 核心修改：确保未配置时标题正确
 function showSetupRequired() {
+    // 未配置时隐藏操作按钮
+    document.getElementById('addSiteBtn').classList.add('d-none');
+    document.getElementById('addCatBtn').classList.add('d-none');
+
     const currentTitle = db.title || "AI 网址导航";
     document.getElementById('navBrandText').innerText = currentTitle;
     document.getElementById('pageTitle').innerText = currentTitle;
-    document.getElementById('siteTitleInput').value = currentTitle;
 
     document.getElementById('app').innerHTML = `
         <div class="text-center py-5 bg-white rounded-4 shadow-sm border mt-5">
