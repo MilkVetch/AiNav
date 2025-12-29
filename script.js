@@ -1,4 +1,4 @@
-let db = { title: "AI Nav", categories: [] };
+let db = { title: "AI 网址导航", categories: [] };
 let bootstrapModals = {};
 
 const CONFIG = {
@@ -8,7 +8,6 @@ const CONFIG = {
 
 // 1. 初始化
 async function init() {
-    // 实例化 Bootstrap 弹窗
     ['settingsModal', 'siteModal', 'catModal'].forEach(id => {
         bootstrapModals[id] = new bootstrap.Modal(document.getElementById(id));
     });
@@ -38,6 +37,8 @@ async function fetchData() {
     } catch (err) {
         console.error(err);
         updateStatus(false);
+        // 如果加载失败，依然尝试显示现有或默认标题
+        render(); 
         alert('加载失败。请确保 Gist 中有 ainav.json 文件且 Token 正确。');
     }
 }
@@ -68,7 +69,7 @@ function render() {
     const pageTitle = document.getElementById('pageTitle');
 
     // 更新标题
-    const currentTitle = db.title || "My Nav";
+    const currentTitle = db.title || "AI 网址导航";
     brand.innerText = currentTitle;
     pageTitle.innerText = currentTitle;
     document.getElementById('siteTitleInput').value = currentTitle;
@@ -117,7 +118,7 @@ function render() {
     lucide.createIcons();
 }
 
-// 5. 交互逻辑
+// 5. 交互逻辑 (保持不变)
 async function saveSettings() {
     const newToken = document.getElementById('ghToken').value;
     const newGistId = document.getElementById('gistId').value;
@@ -126,7 +127,6 @@ async function saveSettings() {
     localStorage.setItem('gh_token', newToken);
     localStorage.setItem('gh_gist_id', newGistId);
     
-    // 同步新标题
     db.title = newTitle;
     
     if (newToken && newGistId) {
@@ -173,13 +173,18 @@ function deleteCat(idx) {
     }
 }
 
-// 工具函数
 function updateStatus(isOnline) {
     const dot = document.getElementById('syncStatus');
     dot.className = `ms-2 status-dot ${isOnline ? 'status-online' : 'bg-danger'}`;
 }
 
+// 核心修改：确保未配置时标题正确
 function showSetupRequired() {
+    const currentTitle = db.title || "AI 网址导航";
+    document.getElementById('navBrandText').innerText = currentTitle;
+    document.getElementById('pageTitle').innerText = currentTitle;
+    document.getElementById('siteTitleInput').value = currentTitle;
+
     document.getElementById('app').innerHTML = `
         <div class="text-center py-5 bg-white rounded-4 shadow-sm border mt-5">
             <i data-lucide="settings-2" class="text-primary mb-3" style="width:48px; height:48px;"></i>
@@ -193,5 +198,4 @@ function showSetupRequired() {
 function openModal(id) { bootstrapModals[id].show(); }
 function closeModal(id) { bootstrapModals[id].hide(); }
 
-// 启动
 init();
