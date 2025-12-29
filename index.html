@@ -31,21 +31,17 @@
     </nav>
 
     <main class="content-wrapper">
-        <header class="hero-section">
+        <header class="hero-section" id="heroArea">
             <h1 id="digitalClock">00:00</h1>
             <p id="greetingText">...</p>
-            <div class="search-bar">
+            <div class="search-bar" id="searchBarArea">
                 <i data-lucide="search"></i>
                 <input type="text" id="searchInput" onkeypress="handleSearch(event)">
             </div>
         </header>
 
         <div id="app">
-            <div class="loading-state">
-                <div class="spinner"></div>
-                <p id="loadingText">Syncing...</p>
             </div>
-        </div>
     </main>
 
     <footer class="footer" id="footerText">
@@ -82,7 +78,7 @@
 
             <div id="pageLang" class="setting-detail-page hide">
                 <div class="detail-container">
-                    <label class="field-label" id="labelLangSwitch">Language / 语言</label>
+                    <label class="field-label">Language / 语言</label>
                     <div class="btn-row">
                         <button class="action-btn-small flex-1" onclick="setLanguage('zh')">简体中文</button>
                         <button class="action-btn-small flex-1" onclick="setLanguage('en')">English</button>
@@ -94,7 +90,7 @@
                 <div class="detail-container">
                     <label class="field-label" id="labelSwitchBoard">切换面板</label>
                     <select id="boardSwitcher" class="custom-select" onchange="switchBoard(this.value)"></select>
-                    <label class="field-label" id="labelRenameBoard">更名当前面板</label>
+                    <label class="field-label" id="labelRenameBoard">更名面板</label>
                     <div class="input-group">
                         <input type="text" id="siteTitleInput" class="custom-input">
                         <button class="action-btn-small" id="btnApplyRename" onclick="renameBoard()">应用</button>
@@ -124,7 +120,7 @@
 
     <div class="custom-modal" id="siteModal">
         <div class="modal-header"><h3 id="modalTitleSite">新增网址</h3><button class="close-btn" onclick="closeAllModals()">&times;</button></div>
-        <div class="modal-body">
+        <div class="modal-body p-4">
             <div class="input-field"><label id="labelSelectCat">选择分类</label><select id="targetCat" class="custom-select"></select></div>
             <div class="input-field"><label id="labelSiteName">名称</label><input type="text" id="siteName" class="custom-input"></div>
             <div class="input-field"><label id="labelSiteUrl">网址</label><input type="text" id="siteUrl" class="custom-input" placeholder="www.google.com"></div>
@@ -134,7 +130,7 @@
 
     <div class="custom-modal" id="catModal">
         <div class="modal-header"><h3 id="modalTitleCat">新增分类</h3><button class="close-btn" onclick="closeAllModals()">&times;</button></div>
-        <div class="modal-body">
+        <div class="modal-body p-4">
             <div class="input-field"><label id="labelCatName">分类名称</label><input type="text" id="catName" class="custom-input"></div>
             <button class="save-btn" id="btnConfirmCat" onclick="addCategory()">确认</button>
         </div>
