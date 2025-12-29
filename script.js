@@ -17,11 +17,13 @@ const CONFIG = {
 
 // 1. 初始化
 async function init() {
+    // 优先手动创建 Modal 实例，防止后续调用报错
     ['settingsModal', 'siteModal', 'catModal'].forEach(id => {
         const el = document.getElementById(id);
         if (el) bootstrapModals[id] = new bootstrap.Modal(el);
     });
 
+    // 回显设置项
     if (CONFIG.token) document.getElementById('ghToken').value = CONFIG.token;
     if (CONFIG.gistId) document.getElementById('gistId').value = CONFIG.gistId;
 
@@ -36,32 +38,57 @@ async function init() {
     lucide.createIcons();
 }
 
-// 2. 数据获取
+// 2. 状态点点击逻辑
+function confirmReset() {
+    const msg = isConfigured ? "已连接。是否断开连接并清空本地配置？" : "未连接。是否重置？";
+    if (confirm(msg)) {
+        localStorage.clear();
+        location.reload();
+    }
+}
+
+// 3. 智能打开设置弹窗
+function handleOpenSettings() {
+    if (bootstrapModals['settingsModal']) {
+        bootstrapModals['settingsModal'].show();
+        // 如果未配置，自动折叠展开“后端配置”
+        if (!isConfigured) {
+            const collapseEl = document.getElementById('collapseBackend');
+            const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseEl);
+            bsCollapse.show();
+        }
+    }
+}
+
 async function fetchData() {
     try {
         const res = await fetch(`https://api.github.com/gists/${CONFIG.gistId}`, {
             headers: { 'Authorization': `token ${CONFIG.token}` }
         });
         if (!res.ok) throw new Error('Auth Failed');
+        
         const gist = await res.json();
         const file = gist.files['ainav.json'];
+        
         if (file) {
             const content = JSON.parse(file.content);
             db = content.categories ? { activeIndex: 0, boards: [content], theme: 'classic' } : content;
         }
+        
         isConfigured = true;
         applyTheme(db.theme || 'classic', false);
         updateStatus(true);
         render();
     } catch (err) {
+        console.error(err);
         isConfigured = false;
         updateStatus(false);
         showSetupRequired();
     }
 }
 
-// 3. 渲染
 function render() {
+    // 隐藏加载状态并显示配置成功后的功能
     document.getElementById('boardSettingItem').classList.remove('d-none');
     document.getElementById('themeSettingItem').classList.remove('d-none');
     document.getElementById('addSiteBtn').classList.remove('d-none');
@@ -71,10 +98,11 @@ function render() {
     const activeBoard = db.boards[db.activeIndex] || db.boards[0];
 
     if (!activeBoard) {
-        app.innerHTML = `<div class="text-center py-5 mt-5"><h4>连接成功！</h4><button class="btn btn-theme-primary" onclick="createNewBoard()">创建首个面板</button></div>`;
+        app.innerHTML = `<div class="text-center py-5 mt-5"><h4>欢迎！</h4><button class="btn btn-theme-primary px-4" onclick="createNewBoard()">创建首个面板</button></div>`;
         return;
     }
 
+    // 更新标题
     const displayTitle = activeBoard.title + " 导航";
     document.getElementById('navBrandText').innerText = displayTitle;
     document.getElementById('pageTitle').innerText = displayTitle;
@@ -99,12 +127,11 @@ function render() {
         
         const grid = document.getElementById(`cat-${cIdx}`);
         cat.sites.forEach((site, sIdx) => {
-            let domain = '';
+            let domain = 'invalid';
             try {
+                // 容错处理：即使存入了坏网址，渲染也不会崩溃
                 domain = new URL(site.url).hostname;
-            } catch(e) {
-                domain = 'invalid'; // 容错处理：如果 URL 依然无效，不让页面卡死
-            }
+            } catch(e) {}
             
             grid.innerHTML += `
                 <div class="col"><div class="card nav-card shadow-sm p-3 text-center h-100 position-relative">
@@ -119,13 +146,13 @@ function render() {
     lucide.createIcons();
 }
 
-// 4. 核心功能
+// 核心逻辑：添加网址（解决 www.google.com 报错问题）
 function addItem() {
     const cIdx = document.getElementById('targetCat').value;
     const name = document.getElementById('siteName').value;
     let url = document.getElementById('siteUrl').value.trim();
 
-    // 关键修正：如果输入的网址没有 http/https，自动加上
+    // 自动补全协议头，防止 new URL() 崩溃
     if (url && !/^https?:\/\//i.test(url)) {
         url = 'https://' + url;
     }
@@ -133,7 +160,7 @@ function addItem() {
     if(cIdx !== "" && name && url) {
         db.boards[db.activeIndex].categories[cIdx].sites.push({ name, url });
         closeModal('siteModal');
-        // 清空输入框
+        // 重置表单
         document.getElementById('siteName').value = '';
         document.getElementById('siteUrl').value = '';
         render();
@@ -143,23 +170,10 @@ function addItem() {
     }
 }
 
-// 其余逻辑（保持不变）
-function handleOpenSettings() {
-    openModal('settingsModal');
-    if (!isConfigured) {
-        const btn = document.getElementById('backendCollapseBtn');
-        const target = document.getElementById('collapseBackend');
-        if (btn && !target.classList.contains('show')) {
-            btn.click();
-        }
-    }
-}
-
-function confirmReset() {
-    if (confirm("确定要断开连接并清空本地配置吗？")) {
-        localStorage.clear();
-        location.reload();
-    }
+// 其他工具函数
+function showSetupRequired() {
+    document.getElementById('app').innerHTML = `<div class="text-center py-5 bg-white rounded-4 shadow border mt-5"><h3>尚未配置</h3><p class="text-muted mb-4">连接 GitHub Gist 以管理您的数据。</p><button class="btn btn-primary px-4" onclick="handleOpenSettings()">去配置</button></div>`;
+    lucide.createIcons();
 }
 
 async function saveSettings() {
@@ -203,10 +217,6 @@ function updateStatus(on) {
 }
 function openModal(id) { if(bootstrapModals[id]) bootstrapModals[id].show(); }
 function closeModal(id) { if(bootstrapModals[id]) bootstrapModals[id].hide(); }
-function showSetupRequired() {
-    document.getElementById('app').innerHTML = `<div class="text-center py-5 bg-white rounded-4 shadow border mt-5"><h3>欢迎使用</h3><p class="text-muted mb-4">请先配置 Gist 以启用同步功能。</p><button class="btn btn-primary px-4" onclick="handleOpenSettings()">去配置</button></div>`;
-    lucide.createIcons();
-}
 function switchBoard(idx) { db.activeIndex = parseInt(idx); render(); pushToGist(); }
 function createNewBoard() {
     const name = prompt("输入新面板名称：");
@@ -217,7 +227,7 @@ function renameBoard() {
     if(name && db.boards[db.activeIndex]){ db.boards[db.activeIndex].title = name; render(); pushToGist(); }
 }
 function deleteCurrentBoard() {
-    if(confirm("确定删除此面板？")){ db.boards.splice(db.activeIndex,1); db.activeIndex=0; render(); pushToGist(); }
+    if(confirm("确定删除？")){ db.boards.splice(db.activeIndex,1); db.activeIndex=0; render(); pushToGist(); }
 }
 function addCategory() {
     const n = document.getElementById('catName').value;
