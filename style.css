@@ -4,31 +4,30 @@
 }
 
 .bg-theme-primary { background-color: var(--theme-primary) !important; }
-.btn-theme-primary { background-color: var(--theme-primary); color: white; }
-.btn-theme-accent { background-color: rgba(255,255,255,0.2); color: white; border: none; transition: background 0.2s; }
-.btn-theme-accent:hover { background-color: rgba(255,255,255,0.3); color: white; }
+.btn-theme-primary { background-color: var(--theme-primary); color: white; border: none; }
+.btn-theme-accent { background-color: rgba(255,255,255,0.15); color: white; border: none; }
+.btn-theme-accent:hover { background-color: rgba(255,255,255,0.25); color: white; }
 
-/* 状态点及其点击区域 */
+/* 状态点退出 */
 #statusClickArea {
     cursor: pointer;
-    padding: 4px;
+    padding: 6px;
     display: flex;
     align-items: center;
     transition: transform 0.2s;
 }
-#statusClickArea:hover { transform: scale(1.2); }
+#statusClickArea:hover { transform: scale(1.15); }
 
-.status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; transition: 0.3s; }
 .status-online { background-color: #31d2f2 !important; box-shadow: 0 0 8px rgba(49, 210, 242, 0.6); }
 
-/* 卡片美化 */
-.nav-card { transition: all 0.25s ease; border: none; background: #fff; border-radius: 12px; }
-.nav-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; }
+/* UI 组件 */
+.nav-card { transition: all 0.2s ease; border: none; background: #fff; border-radius: 12px; }
+.nav-card:hover { transform: translateY(-4px); box-shadow: 0 8px 15px rgba(0,0,0,0.06) !important; }
 .nav-card img { width: 36px; height: 36px; border-radius: 6px; object-fit: contain; }
 
 .category-title { font-size: 1rem; font-weight: 700; color: #495057; display: flex; justify-content: space-between; border-left: 4px solid var(--theme-primary); padding-left: 12px; }
 .icon-sm { width: 16px; height: 16px; }
 
-/* 悬浮删除按钮 */
-.delete-item-btn { position: absolute; top: 5px; right: 5px; opacity: 0; color: #dc3545; transition: opacity 0.2s; }
+.delete-item-btn { position: absolute; top: 5px; right: 5px; opacity: 0; color: #dc3545; transition: 0.2s; }
 .nav-card:hover .delete-item-btn { opacity: 1; }

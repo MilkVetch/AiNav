@@ -15,12 +15,15 @@ const CONFIG = {
     gistId: localStorage.getItem('gh_gist_id')
 };
 
+// 1. 初始化
 async function init() {
+    // 强制先实例化弹窗，避免代码执行中找不到对象
     ['settingsModal', 'siteModal', 'catModal'].forEach(id => {
-        bootstrapModals[id] = new bootstrap.Modal(document.getElementById(id));
+        const el = document.getElementById(id);
+        if (el) bootstrapModals[id] = new bootstrap.Modal(el);
     });
 
-    // 回显配置
+    // 回显设置
     if (CONFIG.token) document.getElementById('ghToken').value = CONFIG.token;
     if (CONFIG.gistId) document.getElementById('gistId').value = CONFIG.gistId;
 
@@ -35,14 +38,27 @@ async function init() {
     lucide.createIcons();
 }
 
-// 自动展开逻辑
+// 2. 状态点点击重置
+function confirmReset() {
+    const msg = isConfigured ? "确定要断开连接并清空本地配置吗？" : "确定清空本地配置吗？";
+    if (confirm(msg)) {
+        localStorage.clear();
+        location.reload();
+    }
+}
+
+// 3. 智能开启设置弹窗
 function handleOpenSettings() {
-    openModal('settingsModal');
-    // 如果未配置，自动展开后端设置
-    if (!isConfigured) {
-        const backendCollapse = document.getElementById('collapseBackend');
-        const bsCollapse = bootstrap.Collapse.getOrCreateInstance(backendCollapse);
-        bsCollapse.show();
+    if (bootstrapModals['settingsModal']) {
+        bootstrapModals['settingsModal'].show();
+        // 如果未配置，自动展开后端选项
+        if (!isConfigured) {
+            const btn = document.getElementById('backendCollapseBtn');
+            const target = document.getElementById('collapseBackend');
+            if (btn && !target.classList.contains('show')) {
+                btn.click(); // 触发折叠展开
+            }
+        }
     }
 }
 
@@ -51,8 +67,7 @@ async function fetchData() {
         const res = await fetch(`https://api.github.com/gists/${CONFIG.gistId}`, {
             headers: { 'Authorization': `token ${CONFIG.token}` }
         });
-        
-        if (!res.ok) throw new Error('连接失败');
+        if (!res.ok) throw new Error('Auth Failed');
         
         const gist = await res.json();
         const file = gist.files['ainav.json'];
@@ -67,6 +82,7 @@ async function fetchData() {
         updateStatus(true);
         render();
     } catch (err) {
+        console.error(err);
         isConfigured = false;
         updateStatus(false);
         showSetupRequired();
@@ -74,7 +90,7 @@ async function fetchData() {
 }
 
 function render() {
-    // 配置成功后才显示的区域
+    // 解除隐藏限制
     document.getElementById('boardSettingItem').classList.remove('d-none');
     document.getElementById('themeSettingItem').classList.remove('d-none');
     document.getElementById('addSiteBtn').classList.remove('d-none');
@@ -84,7 +100,7 @@ function render() {
     const activeBoard = db.boards[db.activeIndex] || db.boards[0];
 
     if (!activeBoard) {
-        app.innerHTML = `<div class="text-center py-5 mt-5"><h4>连接成功！</h4><button class="btn btn-theme-primary" onclick="createNewBoard()">创建首个面板</button></div>`;
+        app.innerHTML = `<div class="text-center py-5 mt-5"><h4>欢迎！</h4><button class="btn btn-theme-primary" onclick="createNewBoard()">创建首个面板</button></div>`;
         return;
     }
 
@@ -92,7 +108,6 @@ function render() {
     document.getElementById('navBrandText').innerText = displayTitle;
     document.getElementById('pageTitle').innerText = displayTitle;
     document.getElementById('siteTitleInput').value = activeBoard.title;
-
     document.getElementById('boardSwitcher').innerHTML = db.boards.map((b, i) => `<option value="${i}" ${i==db.activeIndex?'selected':''}>${b.title}</option>`).join('');
 
     app.innerHTML = '';
@@ -114,31 +129,20 @@ function render() {
         cat.sites.forEach((site, sIdx) => {
             const domain = new URL(site.url).hostname;
             grid.innerHTML += `
-                <div class="col">
-                    <div class="card nav-card shadow-sm p-3 text-center h-100 position-relative">
-                        <button class="btn btn-link delete-item-btn p-0" onclick="event.preventDefault(); deleteSite(${cIdx}, ${sIdx})"><i data-lucide="x-circle" class="icon-sm"></i></button>
-                        <a href="${site.url}" target="_blank" class="text-decoration-none text-dark stretched-link">
-                            <img src="https://www.google.com/s2/favicons?sz=128&domain=${domain}" class="mb-2 bg-light p-1" onerror="this.src='https://lucide.dev/favicon.ico'">
-                            <div class="small fw-bold text-truncate">${site.name}</div>
-                        </a>
-                    </div>
-                </div>`;
+                <div class="col"><div class="card nav-card shadow-sm p-3 text-center h-100 position-relative">
+                    <button class="btn btn-link delete-item-btn p-0" onclick="event.preventDefault(); deleteSite(${cIdx}, ${sIdx})"><i data-lucide="x-circle" class="icon-sm"></i></button>
+                    <a href="${site.url}" target="_blank" class="text-decoration-none text-dark stretched-link">
+                        <img src="https://www.google.com/s2/favicons?sz=128&domain=${domain}" class="mb-2 bg-light p-1" onerror="this.src='https://lucide.dev/favicon.ico'">
+                        <div class="small fw-bold text-truncate">${site.name}</div>
+                    </a>
+                </div></div>`;
         });
     });
     lucide.createIcons();
 }
 
-// 状态点点击退出
-function confirmReset() {
-    const msg = isConfigured ? "当前已连接到云端。是否要退出登录并清除本地配置？" : "当前未连接。是否清除本地残留配置？";
-    if(confirm(msg)) {
-        localStorage.clear();
-        location.reload();
-    }
-}
-
 function showSetupRequired() {
-    document.getElementById('app').innerHTML = `<div class="text-center py-5 bg-white rounded-4 shadow border mt-5"><h3>欢迎使用</h3><p class="text-muted mb-4">请先配置 Gist 以启用同步功能。</p><button class="btn btn-primary px-4" onclick="handleOpenSettings()">去配置</button></div>`;
+    document.getElementById('app').innerHTML = `<div class="text-center py-5 bg-white rounded-4 shadow border mt-5"><h3>尚未配置</h3><p class="text-muted mb-4">连接 GitHub Gist 以管理您的云端数据。</p><button class="btn btn-primary px-4" onclick="handleOpenSettings()">去配置</button></div>`;
     lucide.createIcons();
 }
 
@@ -177,11 +181,14 @@ function renderThemes() {
     list.innerHTML = THEMES.map(t => `<div class="col-6"><div class="border rounded p-2 d-flex align-items-center theme-option" onclick="applyTheme('${t.id}')" style="cursor:pointer"><div class="rounded-circle me-2" style="width:20px; height:20px; background:${t.primary}"></div><span class="small">${t.name}</span></div></div>`).join('');
 }
 
-function updateStatus(on) { document.getElementById('syncStatus').className = `status-dot ${on?'status-online':'bg-danger'}`; }
-function openModal(id) { bootstrapModals[id].show(); }
-function closeModal(id) { bootstrapModals[id].hide(); }
+function updateStatus(on) { 
+    const dot = document.getElementById('syncStatus');
+    if (dot) dot.className = `status-dot ${on ? 'status-online' : 'bg-danger'}`; 
+}
+function openModal(id) { if(bootstrapModals[id]) bootstrapModals[id].show(); }
+function closeModal(id) { if(bootstrapModals[id]) bootstrapModals[id].hide(); }
 
-// 面板管理功能保持不变...
+// 逻辑功能
 function switchBoard(idx) { db.activeIndex = parseInt(idx); render(); pushToGist(); }
 function createNewBoard() {
     const name = prompt("输入新面板名称：");
@@ -189,10 +196,10 @@ function createNewBoard() {
 }
 function renameBoard() {
     const name = document.getElementById('siteTitleInput').value.trim();
-    if(name){ db.boards[db.activeIndex].title = name; render(); pushToGist(); }
+    if(name && db.boards[db.activeIndex]){ db.boards[db.activeIndex].title = name; render(); pushToGist(); }
 }
 function deleteCurrentBoard() {
-    if(confirm("确定彻底删除此面板？")){ db.boards.splice(db.activeIndex,1); db.activeIndex=0; render(); pushToGist(); }
+    if(confirm("确定删除此面板？")){ db.boards.splice(db.activeIndex,1); db.activeIndex=0; render(); pushToGist(); }
 }
 function addCategory() {
     const n = document.getElementById('catName').value;
@@ -204,7 +211,7 @@ function addItem() {
     const u = document.getElementById('siteUrl').value;
     if(cIdx!=="" && n && u){ db.boards[db.activeIndex].categories[cIdx].sites.push({name:n, url:u}); render(); pushToGist(); closeModal('siteModal'); }
 }
-function deleteSite(c, s) { if(confirm('删除？')){ db.boards[db.activeIndex].categories[c].sites.splice(s,1); render(); pushToGist(); } }
-function deleteCat(i) { if(confirm('删除分类？')){ db.boards[db.activeIndex].categories.splice(i,1); render(); pushToGist(); } }
+function deleteSite(c, s) { if(confirm('确认删除网址？')){ db.boards[db.activeIndex].categories[c].sites.splice(s,1); render(); pushToGist(); } }
+function deleteCat(i) { if(confirm('确认删除分类？')){ db.boards[db.activeIndex].categories.splice(i,1); render(); pushToGist(); } }
 
 init();
