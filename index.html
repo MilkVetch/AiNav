@@ -57,7 +57,7 @@
     <div class="custom-modal" id="settingsModal">
         <div class="modal-header">
             <button class="back-btn hide" id="settingsBackBtn" onclick="showSettingsHome()">
-                <i data-lucide="chevron-left"></i>
+                <i data-lucide="chevron-left" class="icon-sm"></i>
             </button>
             <h3 id="modalTitleSettings">系统设置</h3>
             <button class="close-btn" onclick="closeAllModals()">&times;</button>
@@ -94,7 +94,7 @@
                 <div class="detail-container">
                     <label class="field-label" id="labelSwitchBoard">切换面板</label>
                     <select id="boardSwitcher" class="custom-select" onchange="switchBoard(this.value)"></select>
-                    <label class="field-label" id="labelRenameBoard">重命名当前面板</label>
+                    <label class="field-label" id="labelRenameBoard">更名当前面板</label>
                     <div class="input-group">
                         <input type="text" id="siteTitleInput" class="custom-input">
                         <button class="action-btn-small" id="btnApplyRename" onclick="renameBoard()">应用</button>
@@ -110,11 +110,11 @@
                 <div class="detail-container">
                     <div class="input-field">
                         <label>GitHub Token</label>
-                        <input type="password" id="ghToken" class="custom-input" placeholder="ghp_xxxxxx">
+                        <input type="password" id="ghToken" class="custom-input">
                     </div>
                     <div class="input-field">
                         <label>Gist ID</label>
-                        <input type="text" id="gistId" class="custom-input" placeholder="32位 Gist ID">
+                        <input type="text" id="gistId" class="custom-input">
                     </div>
                     <button class="save-btn" id="btnSaveConfig" onclick="saveSettings()">保存并同步</button>
                 </div>

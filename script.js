@@ -4,7 +4,7 @@ const I18N = {
         modalTitleSettings: "系统设置", menuLang: "语言设置", menuBoard: "面板管理", menuBackend: "后端配置", labelSwitchBoard: "切换面板",
         labelRenameBoard: "面板更名", btnApply: "应用", btnNew: "+ 新增", btnDel: "删除", btnSave: "连接并保存", modalTitleSite: "新增网址",
         labelSelectCat: "选择分类", labelSiteName: "名称", labelSiteUrl: "网址", btnConfirm: "确认", modalTitleCat: "新增分类",
-        labelCatName: "分类名称", welcome: "欢迎使用", setupMsg: "请配置 Gist 以开启云端同步", setupBtn: "去配置", emptyBoard: "创建首个面板",
+        labelCatName: "分类名称", setupMsg: "请配置 Gist 以开启云端同步", setupBtn: "去配置", emptyBoard: "创建首个面板",
         confirmDelSite: "确认删除网址？", confirmDelCat: "确认删除分类？", confirmReset: "要断开云端连接吗？", promptNewBoard: "输入新面板名称："
     },
     en: {
@@ -12,7 +12,7 @@ const I18N = {
         modalTitleSettings: "Settings", menuLang: "Language", menuBoard: "Boards", menuBackend: "Storage", labelSwitchBoard: "Switch",
         labelRenameBoard: "Rename", btnApply: "Apply", btnNew: "+ New", btnDel: "Delete", btnSave: "Save", modalTitleSite: "Add Site",
         labelSelectCat: "Category", labelSiteName: "Name", labelSiteUrl: "URL", btnConfirm: "Confirm", modalTitleCat: "Add Category",
-        labelCatName: "Category Name", welcome: "Welcome", setupMsg: "Connect Gist to sync data", setupBtn: "Setup", emptyBoard: "Create Board",
+        labelCatName: "Category Name", setupMsg: "Connect Gist to sync data", setupBtn: "Setup", emptyBoard: "Create Board",
         confirmDelSite: "Delete this site?", confirmDelCat: "Delete category?", confirmReset: "Disconnect Gist?", promptNewBoard: "Board name:"
     }
 };
@@ -22,30 +22,77 @@ const GREETINGS = {
     en: { "00:00": "Midnight, time for inspiration.", "05:00": "Early morning, a new day begins.", "08:00": "Good morning, stay focused.", "12:00": "Noon, take a short break.", "14:00": "Good afternoon, keep going.", "18:00": "Sunset, enjoy the evening.", "21:00": "Night, music for the soul.", "23:00": "Good night, sweet dreams." }
 };
 
-let db = { activeIndex: 0, boards: [], theme: 'classic', lang: 'zh' };
+let db = { activeIndex: 0, boards: [], lang: 'zh' };
 let isConfigured = false;
 const CONFIG = { token: localStorage.getItem('gh_token'), gistId: localStorage.getItem('gh_gist_id') };
 
-// 1. 初始化入口
 function init() {
-    updateClock(); 
-    setInterval(updateClock, 1000); 
+    updateClock(); setInterval(updateClock, 1000);
     if (CONFIG.token) document.getElementById('ghToken').value = CONFIG.token;
     if (CONFIG.gistId) document.getElementById('gistId').value = CONFIG.gistId;
 
     if (!CONFIG.token || !CONFIG.gistId) {
-        showSetupRequired();
+        isConfigured = false;
+        render(); // 初始渲染未配置状态
     } else {
         fetchData();
     }
     lucide.createIcons();
 }
 
-// 2. 状态渲染逻辑：关键点在于只有 isConfigured 为真才显示面板菜单
+// 设置内导航逻辑
+function showSettingPage(pageId) {
+    document.getElementById('settingsHome').classList.add('hide');
+    document.querySelectorAll('.setting-detail-page').forEach(p => p.classList.add('hide'));
+    document.getElementById(pageId).classList.remove('hide');
+    document.getElementById('settingsBackBtn').classList.remove('hide');
+}
+
+function showSettingsHome() {
+    document.getElementById('settingsHome').classList.remove('hide');
+    document.querySelectorAll('.setting-detail-page').forEach(p => p.classList.add('hide'));
+    document.getElementById('settingsBackBtn').classList.add('hide');
+}
+
+function updateClock() {
+    const now = new Date();
+    const h = now.getHours(), m = now.getMinutes();
+    document.getElementById('digitalClock').innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+
+    let glow = "rgba(150, 100, 255, 0.2)";
+    if (h >= 5 && h < 12) glow = "rgba(255, 180, 100, 0.2)";
+    else if (h >= 12 && h < 18) glow = "rgba(100, 200, 255, 0.2)";
+    document.documentElement.style.setProperty('--glow-color', glow);
+
+    const greetingEl = document.getElementById('greetingText');
+    const lang = db.lang || 'zh';
+    const hourKeys = Object.keys(GREETINGS[lang]).sort().reverse();
+    const currentKey = hourKeys.find(key => h >= parseInt(key.split(':')[0])) || "00:00";
+    const target = GREETINGS[lang][currentKey];
+
+    if (greetingEl.innerText !== target) {
+        greetingEl.style.opacity = "0";
+        setTimeout(() => { greetingEl.innerText = target; greetingEl.style.opacity = "1"; }, 600);
+    }
+}
+
+async function fetchData() {
+    try {
+        const res = await fetch(`https://api.github.com/gists/${CONFIG.gistId}`, { headers: { 'Authorization': `token ${CONFIG.token}` } });
+        if (!res.ok) throw new Error();
+        const gist = await res.json();
+        const content = JSON.parse(gist.files['ainav.json'].content);
+        db = content.categories ? { activeIndex: 0, boards: [{title: "Main", categories: content.categories}], lang: 'zh' } : content;
+        isConfigured = true;
+        render();
+    } catch (err) { isConfigured = false; render(); }
+}
+
+// 核心渲染函数：合并了所有翻译与视图更新逻辑
 function render() {
     const dict = I18N[db.lang || 'zh'];
     
-    // 基本静态文本翻译
+    // 翻译全站静态文本
     document.getElementById('navBrandText').innerText = dict.navBrand;
     document.getElementById('btnSettingsText').innerText = dict.settings;
     document.getElementById('searchInput').placeholder = dict.searchPlaceholder;
@@ -53,7 +100,7 @@ function render() {
     document.getElementById('menuBackendText').innerText = dict.menuBackend;
     document.getElementById('modalTitleSettings').innerText = dict.modalTitleSettings;
     
-    // 后端连接成功后的界面权限判断
+    // 只有已连接 Gist 时，面板管理菜单才可见
     if (isConfigured) {
         document.getElementById('menuBoardItem').classList.remove('hide');
         document.getElementById('menuBoardDivider').classList.remove('hide');
@@ -64,18 +111,27 @@ function render() {
     } else {
         document.getElementById('menuBoardItem').classList.add('hide');
         document.getElementById('menuBoardDivider').classList.add('hide');
+        document.getElementById('addSiteBtn').classList.add('hide');
+        document.getElementById('addCatBtn').classList.add('hide');
     }
 
     const app = document.getElementById('app');
-    const board = db.boards[db.activeIndex] || db.boards[0];
 
-    // 如果没有面板（即使连接了 Gist）
-    if (!board) {
-        app.innerHTML = `<div class="hero-section"><h3>${dict.welcome}</h3><button class="save-btn" style="max-width:180px" onclick="createNewBoard()">${dict.emptyBoard}</button></div>`;
+    // 视图 1：未配置状态（修复点：移除欢迎使用，支持语言实时更新）
+    if (!isConfigured) {
+        app.innerHTML = `<div class="hero-section"><p>${dict.setupMsg}</p><button class="save-btn" style="max-width:180px" onclick="handleOpenSettings()">${dict.setupBtn}</button></div>`;
         return;
     }
 
-    // 详情页文本填充
+    const board = db.boards[db.activeIndex] || db.boards[0];
+
+    // 视图 2：已连接但无面板
+    if (!board) {
+        app.innerHTML = `<div class="hero-section"><button class="save-btn" style="max-width:180px" onclick="createNewBoard()">${dict.emptyBoard}</button></div>`;
+        return;
+    }
+
+    // 更新详情页文本
     document.getElementById('menuBoardText').innerText = dict.menuBoard;
     document.getElementById('labelSwitchBoard').innerText = dict.labelSwitchBoard;
     document.getElementById('labelRenameBoard').innerText = dict.labelRenameBoard;
@@ -97,66 +153,27 @@ function render() {
     board.categories.forEach((cat, cIdx) => {
         catSelect.innerHTML += `<option value="${cIdx}">${cat.name}</option>`;
         const section = document.createElement('section');
-        section.innerHTML = `
-            <div class="category-header">
-                <span>${cat.name}</span>
-                <button class="close-btn" style="font-size:1rem" onclick="deleteCat(${cIdx})"><i data-lucide="trash-2" class="icon-sm"></i></button>
-            </div>
-            <div class="board-grid" id="cat-${cIdx}"></div>
-        `;
+        section.innerHTML = `<div class="category-header"><span>${cat.name}</span><button class="close-btn" style="font-size:1rem" onclick="deleteCat(${cIdx})"><i data-lucide="trash-2" class="icon-sm"></i></button></div><div class="board-grid" id="cat-${cIdx}"></div>`;
         app.appendChild(section);
-
         cat.sites.forEach((site, sIdx) => {
             let domain = 'invalid';
             try { domain = new URL(site.url).hostname; } catch(e) {}
-            document.getElementById(`cat-${cIdx}`).innerHTML += `
-                <a href="${site.url}" target="_blank" class="link-card">
-                    <button class="del-site-btn" onclick="event.preventDefault(); deleteSite(${cIdx}, ${sIdx})">&times;</button>
-                    <img src="https://www.google.com/s2/favicons?sz=128&domain=${domain}" onerror="this.src='https://lucide.dev/favicon.ico'">
-                    <span>${site.name}</span>
-                </a>
-            `;
+            document.getElementById(`cat-${cIdx}`).innerHTML += `<a href="${site.url}" target="_blank" class="link-card"><button class="del-site-btn" onclick="event.preventDefault(); deleteSite(${cIdx}, ${sIdx})">&times;</button><img src="https://www.google.com/s2/favicons?sz=128&domain=${domain}" onerror="this.src='https://lucide.dev/favicon.ico'"><span>${site.name}</span></a>`;
         });
     });
     lucide.createIcons();
 }
 
-// 3. 动态时间系统
-function updateClock() {
-    const now = new Date();
-    const h = now.getHours(), m = now.getMinutes();
-    document.getElementById('digitalClock').innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-
-    // 背景光晕平滑过渡
-    let glow = "rgba(150, 100, 255, 0.2)";
-    if (h >= 5 && h < 12) glow = "rgba(255, 180, 100, 0.2)";
-    else if (h >= 12 && h < 18) glow = "rgba(100, 200, 255, 0.2)";
-    document.documentElement.style.setProperty('--glow-color', glow);
-
-    // 双语问候逻辑
-    const greetingEl = document.getElementById('greetingText');
-    const lang = db.lang || 'zh';
-    const hourKeys = Object.keys(GREETINGS[lang]).sort().reverse();
-    const currentKey = hourKeys.find(key => h >= parseInt(key.split(':')[0])) || "00:00";
-    const target = GREETINGS[lang][currentKey];
-
-    if (greetingEl.innerText !== target) {
-        greetingEl.style.opacity = "0";
-        setTimeout(() => { greetingEl.innerText = target; greetingEl.style.opacity = "1"; }, 600);
+// 功能逻辑：补全网址
+function addItem() {
+    let url = document.getElementById('siteUrl').value.trim();
+    if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+    const cIdx = document.getElementById('targetCat').value;
+    const n = document.getElementById('siteName').value;
+    if (cIdx !== "" && n && url) {
+        db.boards[db.activeIndex].categories[cIdx].sites.push({ name: n, url });
+        closeAllModals(); render(); pushToGist();
     }
-}
-
-// 4. 数据存取层
-async function fetchData() {
-    try {
-        const res = await fetch(`https://api.github.com/gists/${CONFIG.gistId}`, { headers: { 'Authorization': `token ${CONFIG.token}` } });
-        if (!res.ok) throw new Error();
-        const gist = await res.json();
-        const content = JSON.parse(gist.files['ainav.json'].content);
-        db = content.categories ? { activeIndex: 0, boards: [{title: "Main", categories: content.categories}], lang: 'zh' } : content;
-        isConfigured = true;
-        render();
-    } catch (err) { isConfigured = false; showSetupRequired(); }
 }
 
 async function pushToGist() {
@@ -171,36 +188,13 @@ async function pushToGist() {
     } catch (e) { updateStatus(false); }
 }
 
-// 5. 设置菜单导航
-function showSettingPage(pageId) {
-    document.getElementById('settingsHome').classList.add('hide');
-    document.querySelectorAll('.setting-detail-page').forEach(p => p.classList.add('hide'));
-    document.getElementById(pageId).classList.remove('hide');
-    document.getElementById('settingsBackBtn').classList.remove('hide');
-}
-
-function showSettingsHome() {
-    document.getElementById('settingsHome').classList.remove('hide');
-    document.querySelectorAll('.setting-detail-page').forEach(p => p.classList.add('hide'));
-    document.getElementById('settingsBackBtn').classList.add('hide');
-}
-
-// 6. 功能辅助函数
 function setLanguage(lang) { db.lang = lang; render(); pushToGist(); }
-function addItem() {
-    let url = document.getElementById('siteUrl').value.trim();
-    if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
-    const cIdx = document.getElementById('targetCat').value;
-    const n = document.getElementById('siteName').value;
-    if (cIdx !== "" && n && url) { db.boards[db.activeIndex].categories[cIdx].sites.push({ name: n, url }); closeAllModals(); render(); pushToGist(); }
-}
 function confirmReset() { if (confirm(I18N[db.lang||'zh'].confirmReset)) { localStorage.clear(); location.reload(); } }
 function openCustomModal(id) { document.getElementById('modalOverlay').style.display = 'block'; document.getElementById(id).classList.add('active'); if(id==='settingsModal') showSettingsHome(); }
 function closeAllModals() { document.getElementById('modalOverlay').style.display = 'none'; document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('active')); }
 function handleOpenSettings() { openCustomModal('settingsModal'); }
 function saveSettings() { localStorage.setItem('gh_token', document.getElementById('ghToken').value.trim()); localStorage.setItem('gh_gist_id', document.getElementById('gistId').value.trim()); location.reload(); }
 function updateStatus(on) { const dot = document.getElementById('syncStatus'); if (dot) dot.className = `status-dot ${on ? 'status-online' : ''}`; }
-function showSetupRequired() { const d = I18N[db.lang||'zh']; document.getElementById('app').innerHTML = `<div class="hero-section"><h3>${d.welcome}</h3><p>${d.setupMsg}</p><button class="save-btn" style="max-width:180px" onclick="handleOpenSettings()">${d.setupBtn}</button></div>`; }
 function switchBoard(idx) { db.activeIndex = parseInt(idx); render(); pushToGist(); }
 function createNewBoard() { const n = prompt(I18N[db.lang||'zh'].promptNewBoard); if(n){ db.boards.push({title:n, categories:[]}); db.activeIndex=db.boards.length-1; render(); pushToGist(); } }
 function renameBoard() { const n = document.getElementById('siteTitleInput').value.trim(); if(n){ db.boards[db.activeIndex].title = n; render(); pushToGist(); } }
