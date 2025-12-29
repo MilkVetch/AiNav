@@ -38,14 +38,15 @@ const CONFIG = { token: localStorage.getItem('gh_token'), gistId: localStorage.g
 
 // 1. 初始化入口
 function init() {
-    updateClock(); // 立即运行一次更新
-    setInterval(updateClock, 1000); // 每一秒心跳
+    updateClock(); 
+    setInterval(updateClock, 1000); 
     renderThemes();
 
     if (CONFIG.token) document.getElementById('ghToken').value = CONFIG.token;
     if (CONFIG.gistId) document.getElementById('gistId').value = CONFIG.gistId;
 
     if (!CONFIG.token || !CONFIG.gistId) {
+        isConfigured = false;
         showSetupRequired();
     } else {
         fetchData();
@@ -60,8 +61,9 @@ function updateClock() {
     const m = now.getMinutes();
     
     // 数字时钟
-    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-    document.getElementById('digitalClock').innerText = timeStr;
+    const hStr = h.toString().padStart(2, '0');
+    const mStr = m.toString().padStart(2, '0');
+    document.getElementById('digitalClock').innerText = `${hStr}:${mStr}`;
 
     // A. 背景光晕渐变逻辑 (基于小时)
     const glowEl = document.getElementById('bgGlow');
@@ -77,8 +79,9 @@ function updateClock() {
     const mKey = m < 30 ? "00" : "30";
     const hKey = h.toString().padStart(2, '0');
     const currentKey = `${hKey}:${mKey}`;
-    const targetGreeting = CHINESE_GREETINGS[currentKey];
+    const targetGreeting = CHINESE_GREETINGS[currentKey] || "你好，开启新的一天吧。";
 
+    // 修复“正在连接”卡死：只有内容不同时才触发动画
     if (greetingEl.innerText !== targetGreeting) {
         greetingEl.style.opacity = "0";
         greetingEl.style.transform = "translateY(8px)";
@@ -99,7 +102,14 @@ async function fetchData() {
         if (!res.ok) throw new Error('Sync Error');
         const gist = await res.json();
         const content = JSON.parse(gist.files['ainav.json'].content);
-        db = content.categories ? { activeIndex: 0, boards: [content], theme: 'classic' } : content;
+        
+        // 数据格式兼容性检查
+        if (content.categories) {
+            db = { activeIndex: 0, boards: [{ title: content.title || "主面板", categories: content.categories }], theme: content.theme || 'classic' };
+        } else {
+            db = content;
+        }
+        
         isConfigured = true;
         applyTheme(db.theme || 'classic', false);
         updateStatus(true);
@@ -133,7 +143,7 @@ function render() {
         section.innerHTML = `
             <div class="category-header">
                 <span>${cat.name}</span>
-                <button class="close-btn" style="font-size:1rem" onclick="deleteCat(${cIdx})"><i data-lucide="trash-2"></i></button>
+                <button class="close-btn" style="font-size:1rem" onclick="deleteCat(${cIdx})"><i data-lucide="trash-2" class="icon-sm"></i></button>
             </div>
             <div class="board-grid" id="cat-${cIdx}"></div>
         `;
@@ -160,7 +170,7 @@ function addItem() {
     const cIdx = document.getElementById('targetCat').value;
     const name = document.getElementById('siteName').value;
     let url = document.getElementById('siteUrl').value.trim();
-    if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url; // 自动补全 URL 协议
+    if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url; 
 
     if (cIdx !== "" && name && url) {
         db.boards[db.activeIndex].categories[cIdx].sites.push({ name, url });
@@ -240,7 +250,8 @@ function showSetupRequired() {
 }
 
 function updateStatus(on) { 
-    document.getElementById('syncStatus').className = `status-dot ${on ? 'status-online' : ''}`; 
+    const dot = document.getElementById('syncStatus');
+    if (dot) dot.className = `status-dot ${on ? 'status-online' : ''}`; 
 }
 
 function switchBoard(idx) { db.activeIndex = parseInt(idx); render(); pushToGist(); }
@@ -262,5 +273,4 @@ function addCategory() {
 function deleteSite(c, s) { if(confirm('删除？')){ db.boards[db.activeIndex].categories[c].sites.splice(s,1); render(); pushToGist(); } }
 function deleteCat(i) { if(confirm('删除分类？')){ db.boards[db.activeIndex].categories.splice(i,1); render(); pushToGist(); } }
 
-// 启动程序
 init();
