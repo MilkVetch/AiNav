@@ -1,40 +1,38 @@
 :root {
-    --glass-bg: rgba(255, 255, 255, 0.08);
+    --glass-bg: rgba(255, 255, 255, 0.06);
     --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-blur: 15px;
-    --text-main: #fff;
-    --text-dim: rgba(255, 255, 255, 0.6);
+    --glass-blur: 20px;
+    --text-main: #ffffff;
+    --text-dim: rgba(255, 255, 255, 0.5);
     --primary: #3b82f6;
-    --accent: #60a5fa;
+    --glow-color: rgba(59, 130, 246, 0.15);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; transition: all 0.2s ease; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
     font-family: 'Inter', -apple-system, sans-serif;
-    background: #0f172a;
+    background: #0b0f1a;
     color: var(--text-main);
     overflow-x: hidden;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-/* 动态背景光晕 */
+/* 动态背景光晕与过渡 */
 .bg-glow {
     position: fixed;
-    top: -10%; left: -10%; width: 50%; height: 50%;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
-    z-index: -1; pointer-events: none;
-}
-
-/* 磨砂效果 */
-.glass {
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--glass-border);
+    top: -15%; left: -10%; 
+    width: 60%; height: 60%;
+    background: radial-gradient(circle, var(--glow-color) 0%, transparent 70%);
+    z-index: -1; 
+    pointer-events: none;
+    transition: background 3s ease;
 }
 
 .navbar {
-    padding: 1rem 2rem;
+    padding: 1.5rem 2rem;
     position: sticky; top: 0; z-index: 100;
 }
 
@@ -43,105 +41,136 @@ body {
     display: flex; justify-content: space-between; align-items: center;
 }
 
-.nav-brand { display: flex; align-items: center; cursor: pointer; font-weight: 600; }
-.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; margin-left: 8px; }
-.status-online { background: #10b981; box-shadow: 0 0 10px #10b981; }
+.nav-brand { display: flex; align-items: center; cursor: pointer; font-size: 1.1rem; font-weight: 600; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; margin-left: 8px; transition: 0.3s; }
+.status-online { background: #10b981; box-shadow: 0 0 12px #10b981; }
+
+/* 修改处：添加了 align-items: center 以确保按钮垂直对齐 */
+.nav-actions { display: flex; gap: 12px; align-items: center; }
 
 .glass-btn {
     background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
     color: var(--text-main);
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
+    padding: 0.6rem 1.2rem;
+    border-radius: 10px;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    display: flex; align-items: center; gap: 6px; /* 确保按钮内部图标和文字对齐 */
 }
-.glass-btn:hover { background: rgba(255,255,255,0.15); }
+.glass-btn:hover { background: rgba(255,255,255,0.12); transform: translateY(-1px); }
 .glass-btn.primary { background: var(--primary); border: none; }
 
-/* 英雄区域 (时间/搜索) */
+/* 头部内容 */
 .hero-section {
     text-align: center;
-    padding: 6rem 0 4rem;
+    padding: 5rem 0 3rem;
+    min-height: 320px;
 }
-#digitalClock { font-size: 5rem; font-weight: 200; margin-bottom: 0.5rem; }
-#greetingText { color: var(--text-dim); margin-bottom: 2.5rem; letter-spacing: 1px; }
+#digitalClock { font-size: 5.5rem; font-weight: 200; margin-bottom: 0.5rem; letter-spacing: -2px; }
+#greetingText { 
+    color: var(--text-dim); 
+    margin-bottom: 2.5rem; 
+    font-size: 1.1rem;
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
 
 .search-bar {
-    max-width: 500px; margin: 0 auto;
+    max-width: 480px; margin: 0 auto;
     background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
-    border-radius: 25px;
-    padding: 0.8rem 1.5rem;
+    border-radius: 30px;
+    padding: 0.7rem 1.4rem;
     display: flex; align-items: center;
 }
 .search-bar input {
     background: none; border: none; color: white; width: 100%;
-    margin-left: 10px; font-size: 1rem; outline: none;
+    margin-left: 12px; font-size: 1rem; outline: none;
 }
 
-/* 导航卡片网格 */
-.content-wrapper { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+/* 导航网格 */
+.content-wrapper { max-width: 1200px; margin: 0 auto; padding: 0 2rem 4rem; flex-grow: 1; }
 .board-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 1.2rem;
 }
 
 .category-header {
-    font-size: 1.1rem; font-weight: 500; margin: 3rem 0 1.5rem;
-    border-left: 4px solid var(--primary); padding-left: 1rem;
-    display: flex; justify-content: space-between;
+    font-size: 1rem; font-weight: 600; margin: 3rem 0 1.2rem;
+    border-left: 3px solid var(--primary); padding-left: 1rem;
+    display: flex; justify-content: space-between; align-items: center;
 }
 
 .link-card {
     background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
     border-radius: 16px;
-    padding: 1.5rem 1rem;
+    padding: 1.4rem 1rem;
     text-align: center;
     position: relative;
     text-decoration: none; color: inherit;
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.link-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.12); }
-.link-card img { width: 40px; height: 40px; margin-bottom: 0.8rem; border-radius: 8px; }
-.link-card span { display: block; font-size: 0.85rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.link-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.1); border-color: var(--primary); }
+.link-card img { width: 38px; height: 38px; margin-bottom: 0.7rem; border-radius: 8px; object-fit: contain; }
+.link-card span { display: block; font-size: 0.8rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.del-site-btn { position: absolute; top: 8px; right: 8px; opacity: 0; color: #ef4444; border: none; background: none; cursor: pointer; }
+.del-site-btn { position: absolute; top: 8px; right: 8px; opacity: 0; color: #ef4444; border: none; background: none; cursor: pointer; padding: 4px; }
 .link-card:hover .del-site-btn { opacity: 1; }
 
-/* 原生弹窗样式 */
+/* 弹窗 */
 .custom-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(5px); display: none; z-index: 1000;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px); display: none; z-index: 1000;
 }
 .custom-modal {
-    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
-    width: 90%; max-width: 450px; background: #1e293b; border-radius: 20px;
-    padding: 1.5rem; z-index: 1001; display: none; opacity: 0;
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -45%) scale(0.95);
+    width: 90%; max-width: 420px; background: #161b26; border: 1px solid var(--glass-border);
+    border-radius: 24px; padding: 1.8rem; z-index: 1001; display: none; opacity: 0;
+    transition: 0.3s ease;
 }
 .custom-modal.active { display: block; opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-.close-btn { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.8rem; }
+.close-btn { background: none; border: none; color: var(--text-dim); font-size: 1.6rem; cursor: pointer; }
 
 .input-field { margin-bottom: 1.2rem; }
-.input-field label { display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 0.5rem; }
+.input-field label { display: block; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.5rem; text-transform: uppercase; }
 input, select {
-    width: 100%; background: #0f172a; border: 1px solid var(--glass-border);
-    color: white; padding: 0.7rem; border-radius: 8px; outline: none;
+    width: 100%; background: #0b0f1a; border: 1px solid var(--glass-border);
+    color: white; padding: 0.8rem; border-radius: 10px; outline: none; font-size: 0.9rem;
 }
+input:focus { border-color: var(--primary); }
 
-.save-btn { width: 100%; padding: 0.8rem; background: var(--primary); border: none; border-radius: 8px; color: white; cursor: pointer; margin-top: 1rem; }
+.save-btn { width: 100%; padding: 0.9rem; background: var(--primary); border: none; border-radius: 12px; color: white; cursor: pointer; font-weight: 600; margin-top: 1rem; }
 
-/* 隐藏与显示逻辑 */
+/* 弹窗内折叠面板 */
+.collapsible-section { margin-bottom: 1rem; border: 1px solid var(--glass-border); border-radius: 12px; overflow: hidden; }
+.collapsible-header { padding: 1rem; background: rgba(255,255,255,0.03); cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
+.collapsible-content { padding: 1rem; display: none; border-top: 1px solid var(--glass-border); }
+
+.theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.input-group { display: flex; gap: 8px; margin-bottom: 1rem; }
+.input-group input { flex-grow: 1; }
+.input-group button { padding: 0 1rem; background: var(--glass-bg); border: 1px solid var(--glass-border); color: white; border-radius: 8px; cursor: pointer; }
+.btn-row { display: flex; gap: 10px; }
+.action-btn { flex: 1; padding: 0.8rem; border: none; border-radius: 10px; color: white; cursor: pointer; font-size: 0.9rem; }
+.action-btn.success { background: #10b981; }
+.action-btn.danger { background: #ef4444; }
+
 .hide { display: none !important; }
 
-/* 加载动画 */
-.spinner { width: 30px; height: 30px; border: 3px solid var(--glass-bg); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+.footer { padding: 2rem; border-top: 1px solid var(--glass-border); text-align: center; font-size: 0.75rem; color: var(--text-dim); }
+
+.loading-state { text-align: center; padding: 4rem 0; color: var(--text-dim); }
+.spinner { width: 28px; height: 28px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 15px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* 配色系统主题 */
-.theme-emerald { --primary: #10b981; --accent: #34d399; }
-.theme-rose { --primary: #f43f5e; --accent: #fb7185; }
-.theme-sand { --primary: #d97706; --accent: #fbbf24; }
+/* 配色类 */
+.theme-emerald { --primary: #10b981; }
+.theme-rose { --primary: #f43f5e; }
+.theme-sand { --primary: #d97706; }

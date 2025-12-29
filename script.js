@@ -1,3 +1,30 @@
+const CHINESE_GREETINGS = {
+    "00:00": "午夜时分，世界静谧，正是灵感迸发的时刻。", "00:30": "夜深了，音乐是灵魂最温柔的港湾。",
+    "01:00": "星辰作伴，愿你的梦境充满动人的旋律。", "01:30": "万籁俱寂，享受这份独处的静谧吧。",
+    "02:00": "深夜的坚持，终将汇聚成闪耀的光芒。", "02:30": "休息一会儿吧，好梦正在酝酿。",
+    "03:00": "黎明前的沉静，是为了更响亮的鸣奏。", "03:30": "再微弱的光，也在努力照亮夜空。",
+    "04:00": "清晨的先声，总是在宁静中开启。", "04:30": "天快亮了，辛苦了，早点休息。",
+    "05:00": "晨光初露，新的一天悄然拉开序幕。", "05:30": "清晨的空气，透着奋斗的味道。",
+    "06:00": "早安！让第一缕阳光唤醒你的活力。", "06:30": "闻鸡起舞，朝气蓬勃地迎接挑战吧。",
+    "07:00": "热腾腾的早餐，开启元气满满的一天。", "07:30": "晨跑的时间，让律动跳跃在每一步。",
+    "08:00": "专注当下，今天也是值得奋斗的一天。", "08:30": "清晨的律动，助你唤醒无限潜能。",
+    "09:00": "金色的上午，为梦想全速冲刺。", "09:30": "灵感正在萌发，捕捉每一个奇思妙想。",
+    "10:00": "高效办公，用旋律寻找你的心流状态。", "10:30": "一杯咖啡，让思维在乐章中碰撞。",
+    "11:00": "保持节奏，终点就在不远的前方。", "11:30": "午饭时间近了，犒劳一下努力的自己。",
+    "12:00": "午间小憩，让精神重新充充电。", "12:30": "美味午餐，享受这片刻的闲适心情。",
+    "13:00": "闭目养神，让思绪在旋律中沉淀。", "13:30": "重启活力，午后的精彩才刚刚开始。",
+    "14:00": "午后斜阳，保持优雅且从容的步伐。", "14:30": "灵感不打烊，在创作中寻找自我。",
+    "15:00": "下午茶时光，给大脑一个甜蜜的拥抱。", "15:30": "阳光正好，在乐谱中寻找生活的色彩。",
+    "16:00": "不忘初心，每一步努力都算数。", "16:30": "余晖渐起，记录这一刻的收获与感悟。",
+    "17:00": "在音符中保持效率，迎接归途。", "17:30": "落日余晖，愿你的心情如霞光般灿烂。",
+    "18:00": "暮色温柔，整理这一天沉甸甸的果实。", "18:30": "万家灯火，总有一盏是为你而亮。",
+    "19:00": "晚风徐徐，沉浸在动人的节奏里。", "19:30": "放松身心，享受夜晚带来的静谧。",
+    "20:00": "总结今日，为明天积蓄向上的力量。", "20:30": "阅读或创作，让灵魂在深夜里起舞。",
+    "21:00": "舒缓的旋律，是忙碌一天的最佳注脚。", "21:30": "卸下疲惫，回归最纯粹的自我空间。",
+    "22:00": "夜已深，享受这份难得的静谧时光。", "22:30": "放下手机，给眼睛和心灵放个假。",
+    "23:00": "夜深沉，好梦正在星光下静静酝酿。", "23:30": "晚安，愿明早醒来，世界依旧温柔。"
+};
+
 const THEMES = [
     { id: 'classic', name: '极简蓝', class: 'theme-classic' },
     { id: 'emerald', name: '雅致翠', class: 'theme-emerald' },
@@ -7,16 +34,12 @@ const THEMES = [
 
 let db = { activeIndex: 0, boards: [], theme: 'classic' };
 let isConfigured = false;
+const CONFIG = { token: localStorage.getItem('gh_token'), gistId: localStorage.getItem('gh_gist_id') };
 
-const CONFIG = {
-    token: localStorage.getItem('gh_token'),
-    gistId: localStorage.getItem('gh_gist_id')
-};
-
-// 1. 初始化
+// 1. 初始化入口
 function init() {
-    updateClock();
-    setInterval(updateClock, 1000);
+    updateClock(); // 立即运行一次更新
+    setInterval(updateClock, 1000); // 每一秒心跳
     renderThemes();
 
     if (CONFIG.token) document.getElementById('ghToken').value = CONFIG.token;
@@ -30,13 +53,44 @@ function init() {
     lucide.createIcons();
 }
 
-// 时间更新
+// 2. 动态更新时钟、光晕和问候语
 function updateClock() {
     const now = new Date();
-    document.getElementById('digitalClock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    const h = now.getHours();
+    const m = now.getMinutes();
+    
+    // 数字时钟
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    document.getElementById('digitalClock').innerText = timeStr;
+
+    // A. 背景光晕渐变逻辑 (基于小时)
+    const glowEl = document.getElementById('bgGlow');
+    let glowColor = "";
+    if (h >= 5 && h < 12) glowColor = "rgba(255, 180, 100, 0.2)"; // 晨光橘
+    else if (h >= 12 && h < 18) glowColor = "rgba(100, 200, 255, 0.2)"; // 蔚蓝
+    else glowColor = "rgba(150, 100, 255, 0.2)"; // 夜紫
+    
+    document.documentElement.style.setProperty('--glow-color', glowColor);
+
+    // B. 问候语半小时切换与动画
+    const greetingEl = document.getElementById('greetingText');
+    const mKey = m < 30 ? "00" : "30";
+    const hKey = h.toString().padStart(2, '0');
+    const currentKey = `${hKey}:${mKey}`;
+    const targetGreeting = CHINESE_GREETINGS[currentKey];
+
+    if (greetingEl.innerText !== targetGreeting) {
+        greetingEl.style.opacity = "0";
+        greetingEl.style.transform = "translateY(8px)";
+        setTimeout(() => {
+            greetingEl.innerText = targetGreeting;
+            greetingEl.style.opacity = "1";
+            greetingEl.style.transform = "translateY(0)";
+        }, 600);
+    }
 }
 
-// 2. 数据处理与渲染
+// 3. 数据层逻辑
 async function fetchData() {
     try {
         const res = await fetch(`https://api.github.com/gists/${CONFIG.gistId}`, {
@@ -45,10 +99,7 @@ async function fetchData() {
         if (!res.ok) throw new Error('Sync Error');
         const gist = await res.json();
         const content = JSON.parse(gist.files['ainav.json'].content);
-        
-        // 兼容性
         db = content.categories ? { activeIndex: 0, boards: [content], theme: 'classic' } : content;
-        
         isConfigured = true;
         applyTheme(db.theme || 'classic', false);
         updateStatus(true);
@@ -62,22 +113,21 @@ async function fetchData() {
 function render() {
     document.querySelectorAll('.hide').forEach(el => el.classList.remove('hide'));
     const app = document.getElementById('app');
-    const board = db.boards[db.activeIndex] || db.boards[0];
+    const activeBoard = db.boards[db.activeIndex] || db.boards[0];
 
-    if (!board) {
-        app.innerHTML = `<div class="hero-section"><h3>连接成功</h3><button class="save-btn" style="max-width:200px" onclick="createNewBoard()">创建第一个面板</button></div>`;
+    if (!activeBoard) {
+        app.innerHTML = `<div class="hero-section"><h3>连接成功</h3><button class="save-btn" style="max-width:180px" onclick="createNewBoard()">创建首个面板</button></div>`;
         return;
     }
 
-    // 标题
-    document.getElementById('navBrandText').innerText = board.title + " 导航";
+    document.getElementById('navBrandText').innerText = activeBoard.title + " 导航";
     document.getElementById('boardSwitcher').innerHTML = db.boards.map((b, i) => `<option value="${i}" ${i==db.activeIndex?'selected':''}>${b.title}</option>`).join('');
 
     app.innerHTML = '';
     const catSelect = document.getElementById('targetCat');
     catSelect.innerHTML = '';
 
-    board.categories.forEach((cat, cIdx) => {
+    activeBoard.categories.forEach((cat, cIdx) => {
         catSelect.innerHTML += `<option value="${cIdx}">${cat.name}</option>`;
         const section = document.createElement('section');
         section.innerHTML = `
@@ -93,7 +143,6 @@ function render() {
         cat.sites.forEach((site, sIdx) => {
             let domain = 'invalid';
             try { domain = new URL(site.url).hostname; } catch(e) {}
-            
             grid.innerHTML += `
                 <a href="${site.url}" target="_blank" class="link-card">
                     <button class="del-site-btn" onclick="event.preventDefault(); deleteSite(${cIdx}, ${sIdx})">&times;</button>
@@ -106,38 +155,12 @@ function render() {
     lucide.createIcons();
 }
 
-// 3. 原生弹窗逻辑
-function openCustomModal(id) {
-    document.getElementById('modalOverlay').style.display = 'block';
-    document.getElementById(id).classList.add('active');
-}
-
-function closeAllModals() {
-    document.getElementById('modalOverlay').style.display = 'none';
-    document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('active'));
-}
-
-function handleOpenSettings() {
-    openCustomModal('settingsModal');
-    if (!isConfigured) toggleSection('collapseBackend', true);
-}
-
-function toggleSection(id, forceOpen = false) {
-    const el = document.getElementById(id);
-    const isOpen = el.style.display === 'block';
-    // 简单排他折叠
-    document.querySelectorAll('.collapsible-content').forEach(c => c.style.display = 'none');
-    el.style.display = (isOpen && !forceOpen) ? 'none' : 'block';
-}
-
-// 4. 功能函数 (修复 URL 问题)
+// 4. 功能逻辑
 function addItem() {
     const cIdx = document.getElementById('targetCat').value;
     const name = document.getElementById('siteName').value;
     let url = document.getElementById('siteUrl').value.trim();
-
-    // 自动补全
-    if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+    if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url; // 自动补全 URL 协议
 
     if (cIdx !== "" && name && url) {
         db.boards[db.activeIndex].categories[cIdx].sites.push({ name, url });
@@ -147,15 +170,6 @@ function addItem() {
     }
 }
 
-// 登出/重置
-function confirmReset() {
-    if (confirm("要断开云端连接吗？")) {
-        localStorage.clear();
-        location.reload();
-    }
-}
-
-// 其他原逻辑 (pushToGist, deleteSite, switchBoard 等按前序逻辑移植即可)
 async function pushToGist() {
     if (!CONFIG.token || !CONFIG.gistId) return;
     try {
@@ -166,6 +180,35 @@ async function pushToGist() {
         });
         updateStatus(true);
     } catch (e) { updateStatus(false); }
+}
+
+function confirmReset() {
+    if (confirm("要断开云端连接并清除本地数据吗？")) {
+        localStorage.clear();
+        location.reload();
+    }
+}
+
+function openCustomModal(id) {
+    document.getElementById('modalOverlay').style.display = 'block';
+    document.getElementById(id).classList.add('active');
+}
+
+function closeAllModals() {
+    document.getElementById('modalOverlay').style.display = 'none';
+    document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('active'));
+}
+
+function toggleSection(id, force = false) {
+    const el = document.getElementById(id);
+    const open = el.style.display === 'block';
+    document.querySelectorAll('.collapsible-content').forEach(c => c.style.display = 'none');
+    el.style.display = (open && !force) ? 'none' : 'block';
+}
+
+function handleOpenSettings() {
+    openCustomModal('settingsModal');
+    if (!isConfigured) toggleSection('collapseBackend', true);
 }
 
 function saveSettings() {
@@ -184,13 +227,22 @@ function renderThemes() {
     document.getElementById('themeList').innerHTML = THEMES.map(t => `<div class="glass-btn" onclick="applyTheme('${t.id}')">${t.name}</div>`).join('');
 }
 
-function showSetupRequired() {
-    document.getElementById('app').innerHTML = `<div class="hero-section"><h3>Welcome</h3><p>请点击设置连接云端数据</p><button class="save-btn" style="max-width:200px" onclick="handleOpenSettings()">去配置</button></div>`;
+function handleSearch(e) {
+    if (e.key === 'Enter') {
+        const q = e.target.value;
+        if (q.includes('.')) window.open(q.startsWith('http') ? q : 'https://' + q);
+        else window.open('https://www.google.com/search?q=' + encodeURIComponent(q));
+    }
 }
 
-function updateStatus(on) { document.getElementById('syncStatus').className = `status-dot ${on?'status-online':''}`; }
+function showSetupRequired() {
+    document.getElementById('app').innerHTML = `<div class="hero-section"><h3>Welcome</h3><p>请配置 Gist 以开启云端同步</p><button class="save-btn" style="max-width:180px" onclick="handleOpenSettings()">去配置</button></div>`;
+}
 
-// 逻辑功能
+function updateStatus(on) { 
+    document.getElementById('syncStatus').className = `status-dot ${on ? 'status-online' : ''}`; 
+}
+
 function switchBoard(idx) { db.activeIndex = parseInt(idx); render(); pushToGist(); }
 function createNewBoard() {
     const name = prompt("面板名称：");
@@ -210,13 +262,5 @@ function addCategory() {
 function deleteSite(c, s) { if(confirm('删除？')){ db.boards[db.activeIndex].categories[c].sites.splice(s,1); render(); pushToGist(); } }
 function deleteCat(i) { if(confirm('删除分类？')){ db.boards[db.activeIndex].categories.splice(i,1); render(); pushToGist(); } }
 
-// 搜索功能
-function handleSearch(e) {
-    if (e.key === 'Enter') {
-        const query = e.target.value;
-        if (query.includes('.')) window.open(query.startsWith('http') ? query : 'https://' + query);
-        else window.open('https://www.google.com/search?q=' + encodeURIComponent(query));
-    }
-}
-
+// 启动程序
 init();
