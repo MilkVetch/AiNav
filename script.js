@@ -1,11 +1,11 @@
 /**
- * 网址导航核心逻辑 - 2025 全新修复版
+ * 网址导航核心逻辑 - 物理隔离重构版
  */
 
 const I18N = {
     zh: {
-        navBrand: "网址导航", searchPlaceholder: "搜索或输入网址...", addSite: "+ 网址", addCat: "+ 分类", settings: "Setup",
-        modalTitleSettings: "Setup", menuLang: "语言设置", menuBoard: "面板管理", menuSetup: "配置中心", 
+        navBrand: "Nav Hub", searchPlaceholder: "搜索或输入网址...", addSite: "+ 网址", addCat: "+ 分类", settings: "Setup",
+        modalTitleSettings: "Setup", menuLang: "语言设置", menuBoard: "面板管理", menuSetup: "Setup", 
         labelSwitchBoard: "切换面板", labelRenameBoard: "面板更名", btnApply: "应用", btnNew: "+ 新增", btnDel: "删除", 
         btnSave: "保存并同步", setupBtn: "Setup Now", emptyBoard: "创建面板", confirmReset: "断开云端连接？", 
         promptNewBoard: "输入新面板名称：", introTitle: "What is this?",
@@ -94,21 +94,25 @@ function render() {
         document.getElementById('addSiteBtn').classList.add('hide');
         document.getElementById('addCatBtn').classList.add('hide');
         app.innerHTML = `
-            <div class="welcome-container">
-                <div class="welcome-card">
+            <div class="home-welcome-container">
+                <div class="home-welcome-card">
                     <h4>✨ ${dict.introTitle}</h4>
                     <p>${dict.introDesc}</p>
                     <ul><li>${dict.feature1}</li><li>${dict.feature2}</li><li>${dict.feature3}</li></ul>
-                    <button class="form-confirm-btn" onclick="handleOpenSetup()"><i data-lucide="settings" class="icon-sm"></i> ${dict.setupBtn}</button>
+                    <button class="setup-confirm-btn home-card-btn" onclick="handleOpenSetup()">
+                        <i data-lucide="settings" class="icon-sm"></i> ${dict.setupBtn}
+                    </button>
                 </div>
-                <div class="welcome-card">
+                <div class="home-welcome-card">
                     <h4>📖 ${dict.tutorialTitle}</h4>
-                    <div style="flex:1; margin-bottom:1.5rem">
-                        <div style="background:rgba(0,0,0,0.15); padding:12px; border-radius:10px; font-size:0.85rem; border-left:3px solid var(--primary); margin-bottom:10px;">${dict.tutorialStep1}</div>
-                        <div style="background:rgba(0,0,0,0.15); padding:12px; border-radius:10px; font-size:0.85rem; border-left:3px solid var(--primary); margin-bottom:10px;">${dict.tutorialStep2}</div>
-                        <div style="background:rgba(0,0,0,0.15); padding:12px; border-radius:10px; font-size:0.85rem; border-left:3px solid var(--primary); margin-bottom:10px;">${dict.tutorialStep3}</div>
+                    <div style="flex:1">
+                        <div class="tutorial-step">${dict.tutorialStep1}</div>
+                        <div class="tutorial-step">${dict.tutorialStep2}</div>
+                        <div class="tutorial-step">${dict.tutorialStep3}</div>
                     </div>
-                    <button class="form-btn-sm" id="copyBtn" onclick="copyInitialJSON()"><i data-lucide="copy" class="icon-sm"></i> ${dict.copyJsonBtn}</button>
+                    <button class="setup-btn-sm home-card-btn" id="copyBtn" onclick="copyInitialJSON()">
+                        <i data-lucide="copy" class="icon-sm"></i> ${dict.copyJsonBtn}
+                    </button>
                 </div>
             </div>`;
         lucide.createIcons(); return;
@@ -123,7 +127,7 @@ function render() {
     document.getElementById('addCatBtn').innerText = dict.addCat;
     
     const board = db.boards[db.activeIndex] || db.boards[0];
-    if (!board) { app.innerHTML = `<button class="form-confirm-btn" style="max-width:200px; margin: 2rem auto;" onclick="createNewBoard()">${dict.emptyBoard}</button>`; return; }
+    if (!board) { app.innerHTML = `<button class="setup-confirm-btn" style="max-width:200px; margin: 2rem auto;" onclick="createNewBoard()">${dict.emptyBoard}</button>`; return; }
 
     document.getElementById('menuBoardText').innerText = dict.menuBoard;
     document.getElementById('labelSwitchBoard').innerText = dict.labelSwitchBoard;
@@ -135,11 +139,11 @@ function render() {
     board.categories.forEach((cat, cIdx) => {
         catSelect.innerHTML += `<option value="${cIdx}">${cat.name}</option>`;
         const section = document.createElement('section'); section.style.marginBottom = "3rem";
-        section.innerHTML = `<div style="display:flex; justify-content:space-between; margin-bottom:1rem; color:var(--text-dim)"><span>${cat.name}</span><button class="close-btn" style="font-size:0.8rem" onclick="deleteCat(${cIdx})"><i data-lucide="trash-2" class="chevron-icon"></i></button></div><div class="board-grid" id="cat-${cIdx}"></div>`;
+        section.innerHTML = `<div style="display:flex; justify-content:space-between; margin-bottom:1rem; color:var(--text-dim)"><span>${cat.name}</span><button class="modal-close-x" style="font-size:0.8rem" onclick="deleteCat(${cIdx})"><i data-lucide="trash-2" class="chevron-icon"></i></button></div><div class="board-grid" id="cat-${cIdx}"></div>`;
         app.appendChild(section);
         cat.sites.forEach((site, sIdx) => {
             let domain = 'invalid'; try { domain = new URL(site.url).hostname; } catch(e) {}
-            document.getElementById(`cat-${cIdx}`).innerHTML += `<a href="${site.url}" target="_blank" class="link-card"><button class="close-btn" style="position:absolute; top:8px; right:8px; opacity:0; font-size:1.2rem;" onclick="event.preventDefault(); deleteSite(${cIdx}, ${sIdx})">&times;</button><img src="https://www.google.com/s2/favicons?sz=128&domain=${domain}" onerror="this.src='https://lucide.dev/favicon.ico'" style="width:32px; margin-bottom:10px;"><br><span>${site.name}</span></a>`;
+            document.getElementById(`cat-${cIdx}`).innerHTML += `<a href="${site.url}" target="_blank" class="link-card"><button class="modal-close-x" style="position:absolute; top:8px; right:8px; opacity:0; font-size:1.2rem;" onclick="event.preventDefault(); deleteSite(${cIdx}, ${sIdx})">&times;</button><img src="https://www.google.com/s2/favicons?sz=128&domain=${domain}" onerror="this.src='https://lucide.dev/favicon.ico'" style="width:32px; margin-bottom:10px;"><br><span>${site.name}</span></a>`;
         });
     });
     lucide.createIcons();
@@ -162,14 +166,14 @@ function handleOpenSetup() { openCustomModal('settingsModal'); showSettingPage('
 
 function showSettingPage(pageId) {
     document.getElementById('settingsHome').classList.add('hide');
-    document.querySelectorAll('.detail-page').forEach(p => p.classList.add('hide'));
+    document.querySelectorAll('.setup-sub-page').forEach(p => p.classList.add('hide'));
     document.getElementById(pageId).classList.remove('hide');
     document.getElementById('settingsBackBtn').classList.remove('hide');
 }
 
 function showSettingsHome() {
     document.getElementById('settingsHome').classList.remove('hide');
-    document.querySelectorAll('.detail-page').forEach(p => p.classList.add('hide'));
+    document.querySelectorAll('.setup-sub-page').forEach(p => p.classList.add('hide'));
     document.getElementById('settingsBackBtn').classList.add('hide');
 }
 

@@ -16,97 +16,87 @@ body { font-family: 'Inter', sans-serif; background: #0b0f1a; color: var(--text-
 
 .bg-glow { position: fixed; inset: 0; background: radial-gradient(circle at 20% 20%, var(--glow-color) 0%, transparent 50%); z-index: -1; pointer-events: none; }
 
-/* 导航栏 & 状态灯修复 */
-.navbar { padding: 1.5rem 2rem; position: relative; z-index: 100; }
+/* 1. 导航栏 (Navbar) */
+.site-navbar { padding: 1.5rem 2rem; position: relative; z-index: 100; }
 .nav-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
 .nav-brand { display: flex; align-items: center; cursor: pointer; font-size: 1.1rem; font-weight: 600; gap: 8px; }
 
 #statusIndicator { display: flex; align-items: center; height: 1.1rem; }
-.status-dot { 
-    display: inline-block !important; /* 强制显示 */
-    width: 8px !important; height: 8px !important; 
-    border-radius: 50%; background: var(--danger); 
-    transition: 0.3s ease; 
-}
+.status-dot { display: inline-block !important; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); transition: 0.3s; }
 .status-online { background: var(--success); box-shadow: 0 0 12px var(--success); }
 
-/* 右上角按钮样式修复 */
+/* 右上角按钮 - 固定玻璃质感 */
 .glass-btn { 
-    height: 40px; background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur)); 
-    border: 1px solid var(--glass-border); color: var(--text-main); padding: 0 1.2rem; 
-    border-radius: 10px; cursor: pointer; font-size: 0.85rem; 
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s;
+    height: 40px; background: var(--glass-bg); border: 1px solid var(--glass-border); 
+    color: white; padding: 0 1.2rem; border-radius: 10px; cursor: pointer; font-size: 0.85rem; 
+    display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; backdrop-filter: blur(var(--glass-blur));
 }
-.glass-btn.primary { 
-    background: rgba(59, 130, 246, 0.15) !important; 
-    border: 1px solid var(--primary) !important; 
-}
+.setup-primary { background: rgba(59, 130, 246, 0.15) !important; border-color: var(--primary) !important; }
 .glass-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--primary); }
 .icon-sm { width: 1.1rem; height: 1.1rem; }
 
-/* 搜索框修复 */
-.hero-section { text-align: center; padding: 4rem 0 2rem; }
-#digitalClock { font-size: 5rem; font-weight: 200; }
-.search-bar-area { max-width: 500px; margin: 2rem auto; }
-.search-box { 
-    background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 30px; 
-    padding: 0.8rem 1.5rem; display: flex; align-items: center; backdrop-filter: blur(10px); 
-}
-.search-box input { background: none; border: none; color: white; width: 100%; margin-left: 12px; outline: none; font-size: 1rem; }
-
-/* 欢迎页卡片 & 按钮修复 */
-.welcome-container { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; padding: 2rem; }
-.welcome-card { 
+/* 2. 主页：欢迎卡片 (Home Welcome Cards) */
+.home-welcome-container { max-width: 1000px; margin: 4rem auto; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; padding: 0 2rem; }
+.home-welcome-card { 
     background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 2.5rem; 
     border-radius: 28px; backdrop-filter: blur(var(--glass-blur)); 
-    display: flex; flex-direction: column; min-height: 440px; 
+    display: flex; flex-direction: column; min-height: 440px; justify-content: space-between;
 }
-.welcome-card h4 { color: var(--primary); font-size: 1.2rem; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 10px; }
-.welcome-card ul { list-style: none; flex: 1; margin-bottom: 1.5rem; }
-.welcome-card ul li { margin-bottom: 8px; color: var(--text-dim); font-size: 0.95rem; }
+.home-welcome-card h4 { color: var(--primary); font-size: 1.2rem; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 10px; }
+.home-welcome-card ul { list-style: none; flex: 1; margin-bottom: 1.5rem; color: var(--text-dim); font-size: 0.95rem; }
+.home-welcome-card ul li { margin-bottom: 8px; }
 
-/* 欢迎页按钮对齐与尺寸修复 */
-.welcome-card .glass-btn, .welcome-card .form-confirm-btn { 
-    width: 100%; height: 44px; /* 锁定高度 */
-    flex-shrink: 0; /* 禁止被拉伸 */
-    margin-top: auto; 
+/* 主页按钮对齐修复 */
+.home-card-btn { 
+    width: 100%; height: 44px; flex-shrink: 0; 
     display: inline-flex !important; align-items: center !important; justify-content: center !important;
 }
 
-/* 弹窗核心样式隔离 */
+/* 3. 弹窗与设置菜单 (Setup Modals) */
 .custom-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(10px); z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s; }
 .custom-overlay.active { opacity: 1; visibility: visible; }
 .custom-modal { 
     position: fixed; top: 50%; left: 50%; z-index: 1001; width: 90%; max-width: 420px; 
     background: #11151f; border: 1px solid var(--glass-border); border-radius: 28px; 
-    visibility: hidden; opacity: 0; transform: translate(-50%, -45%) scale(0.95); transition: 0.3s ease; 
+    visibility: hidden; opacity: 0; transform: translate(-50%, -45%) scale(0.95); transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .custom-modal.active { visibility: visible; opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
 .modal-header { display: flex; align-items: center; padding: 1.4rem 1.8rem; border-bottom: 1px solid var(--divider); }
-.modal-header h3 { font-size: 1rem; flex: 1; text-align: center; }
-.close-btn { background: none; border: none; color: var(--text-dim); font-size: 1.6rem; cursor: pointer; }
+.modal-header h3 { font-size: 1rem; flex: 1; text-align: center; font-weight: 600; }
+.modal-close-x { background: none; border: none; color: var(--text-dim); font-size: 1.6rem; cursor: pointer; }
 
-/* 设置菜单修复 */
-.menu-item { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 1.8rem; cursor: pointer; }
-.menu-item:hover { background: rgba(255,255,255,0.03); }
-.menu-label { display: flex; align-items: center; gap: 12px; }
-.menu-divider { height: 1px; background: var(--divider); margin: 0 1.8rem; }
+/* 菜单项隔离修复 */
+.setup-menu-item { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 1.8rem; cursor: pointer; transition: 0.2s; }
+.setup-menu-item:hover { background: rgba(255, 255, 255, 0.03); }
+.menu-label-box { display: flex; align-items: center; gap: 12px; }
+.menu-icon { width: 1.1rem; height: 1.1rem; color: var(--primary); }
 .chevron-icon { width: 1.1rem; height: 1.1rem; color: var(--text-dim); stroke-width: 2.5px; }
+.setup-menu-divider { height: 1px; background: var(--divider); margin: 0 1.8rem; }
 
-/* 弹窗内表单规范 */
-.form-wrapper { padding: 1.8rem; display: flex; flex-direction: column; gap: 1.5rem; }
-.form-field { display: flex; flex-direction: column; gap: 8px; }
-.form-label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
-.form-input, .form-select { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: white; padding: 0.8rem 1rem; border-radius: 12px; outline: none; }
-.form-confirm-btn { 
+/* 设置页表单隔离修复 */
+.setup-form { padding: 1.8rem; display: flex; flex-direction: column; gap: 1.5rem; }
+.setup-field { display: flex; flex-direction: column; gap: 8px; }
+.setup-label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+.setup-input, .setup-select { 
+    width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); 
+    color: white; padding: 0.9rem 1rem; border-radius: 12px; outline: none; font-size: 0.95rem;
+}
+.setup-confirm-btn { 
     width: 100%; height: 46px; background: rgba(59, 130, 246, 0.1); border: 1px solid var(--primary); 
     color: white; border-radius: 12px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;
 }
-.form-row { display: flex; gap: 10px; }
-.form-btn-sm { flex: 1; height: 40px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; color: white; cursor: pointer; }
+.setup-row { display: flex; gap: 10px; }
+.setup-btn-sm { flex: 1; height: 40px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; color: white; cursor: pointer; }
 
-/* 网址列表 */
+/* 4. 其它 UI (Clock/Search/Grid) */
+.hero-section { text-align: center; padding: 4rem 0 2rem; }
+#digitalClock { font-size: 5.5rem; font-weight: 200; letter-spacing: -2px; }
+#greetingText { color: var(--text-dim); margin: 1rem 0 2.5rem; height: 1.5rem; }
+.search-container { max-width: 500px; margin: 0 auto; }
+.search-box { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 30px; padding: 0.8rem 1.5rem; display: flex; align-items: center; }
+.search-box input { background: none; border: none; color: white; width: 100%; margin-left: 12px; outline: none; font-size: 1rem; }
+
 #app { max-width: 1200px; margin: 0 auto; padding: 2rem; }
 .board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
 .link-card { background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 1.2rem; border-radius: 20px; text-align: center; text-decoration: none; color: white; transition: 0.2s; position: relative; }
@@ -115,4 +105,4 @@ body { font-family: 'Inter', sans-serif; background: #0b0f1a; color: var(--text-
 .hide { display: none !important; }
 .footer { padding: 3rem; text-align: center; font-size: 0.8rem; color: var(--text-dim); opacity: 0.4; }
 
-@media (max-width: 768px) { .welcome-container { grid-template-columns: 1fr; } }
+@media (max-width: 768px) { .home-welcome-container { grid-template-columns: 1fr; } }
