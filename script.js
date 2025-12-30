@@ -1,5 +1,5 @@
 /**
- * 网址导航核心逻辑 - 2025 全新版
+ * 网址导航核心逻辑 - 修复版
  */
 
 const I18N = {
@@ -7,11 +7,8 @@ const I18N = {
         navBrand: "网址导航", searchPlaceholder: "搜索或输入网址...", addSite: "+ 网址", addCat: "+ 分类", settings: "设置",
         modalTitleSettings: "系统设置", menuLang: "语言设置", menuBoard: "面板管理", menuSetup: "配置中心", 
         labelSwitchBoard: "切换面板", labelRenameBoard: "面板更名", btnApply: "应用", btnNew: "+ 新增", btnDel: "删除", 
-        btnSave: "保存并同步", modalTitleSite: "新增网址", labelSelectCat: "选择分类", labelSiteName: "名称", 
-        labelSiteUrl: "网址", btnConfirm: "确认添加", modalTitleCat: "新增分类", labelCatName: "分类名称", 
-        setupBtn: "开始配置", emptyBoard: "创建首个面板", confirmDelSite: "确认删除网址？", 
-        confirmDelCat: "确认删除分类？", confirmReset: "断开云端连接？", promptNewBoard: "输入新面板名称：",
-        introTitle: "这个导航站能做什么？",
+        btnSave: "保存并同步", setupBtn: "开始配置", emptyBoard: "创建首个面板", confirmReset: "断开云端连接？", 
+        promptNewBoard: "输入新面板名称：", introTitle: "这个导航站能做什么？",
         introDesc: "基于 GitHub Gist 的极简导航。数据 100% 存储在您的私有账号中。",
         feature1: "多面板支持：按需分类，场景切换。",
         feature2: "云端同步：电脑与手机浏览器实时无缝同步。",
@@ -27,11 +24,8 @@ const I18N = {
         navBrand: "Nav Hub", searchPlaceholder: "Search...", addSite: "+ Site", addCat: "+ Category", settings: "Settings",
         modalTitleSettings: "Settings", menuLang: "Language", menuBoard: "Boards", menuSetup: "Setup", 
         labelSwitchBoard: "Switch", labelRenameBoard: "Rename", btnApply: "Apply", btnNew: "+ New", btnDel: "Delete", 
-        btnSave: "Save & Sync", modalTitleSite: "Add Site", labelSelectCat: "Category", labelSiteName: "Name", 
-        labelSiteUrl: "URL", btnConfirm: "Confirm", modalTitleCat: "Add Category", labelCatName: "Name", 
-        setupBtn: "Setup Now", emptyBoard: "Create Board", confirmDelSite: "Delete?", 
-        confirmDelCat: "Delete category?", confirmReset: "Reset config?", promptNewBoard: "Name:",
-        introTitle: "What is this?",
+        btnSave: "Save & Sync", setupBtn: "Setup Now", emptyBoard: "Create Board", confirmReset: "Reset config?", 
+        promptNewBoard: "Name:", introTitle: "What is this?",
         introDesc: "A minimal dashboard powered by GitHub Gist. 100% private data storage.",
         feature1: "Multi-Boards: Organize Work and Life.",
         feature2: "Cloud Sync: Sync between PC and Mobile.",
@@ -57,6 +51,7 @@ const CONFIG = { token: localStorage.getItem('gh_token'), gistId: localStorage.g
 function init() {
     updateClock(); 
     setInterval(updateClock, 1000);
+    updateStatus(false); // 初始状态显示红色
     if (CONFIG.token && CONFIG.gistId) {
         fetchData();
     } else {
@@ -111,7 +106,7 @@ function render() {
     document.getElementById('btnSettingsText').innerText = dict.settings;
     document.getElementById('searchInput').placeholder = dict.searchPlaceholder;
     document.getElementById('menuLangText').innerText = dict.menuLang;
-    document.getElementById('menuSetupText').innerText = dict.menuSetup; // 更新为 Setup
+    document.getElementById('menuSetupText').innerText = dict.menuSetup;
     document.getElementById('modalTitleSettings').innerText = dict.modalTitleSettings;
     const app = document.getElementById('app');
 
@@ -169,11 +164,6 @@ function render() {
     document.getElementById('btnNewBoard').innerText = dict.btnNew;
     document.getElementById('btnDelBoard').innerText = dict.btnDel;
     document.getElementById('btnSaveConfig').innerText = dict.btnSave;
-    document.getElementById('modalTitleSite').innerText = dict.modalTitleSite;
-    document.getElementById('btnConfirmSite').innerText = dict.btnConfirm;
-    document.getElementById('modalTitleCat').innerText = dict.modalTitleCat;
-    document.getElementById('btnConfirmCat').innerText = dict.btnConfirm;
-
     document.getElementById('boardSwitcher').innerHTML = db.boards.map((b, i) => `<option value="${i}" ${i==db.activeIndex?'selected':''}>${b.title}</option>`).join('');
     app.innerHTML = '';
     const catSelect = document.getElementById('targetCat');
@@ -181,7 +171,7 @@ function render() {
     board.categories.forEach((cat, cIdx) => {
         catSelect.innerHTML += `<option value="${cIdx}">${cat.name}</option>`;
         const section = document.createElement('section');
-        section.innerHTML = `<div class="category-header"><span>${cat.name}</span><button class="close-btn" style="font-size:1rem" onclick="deleteCat(${cIdx})"><i data-lucide="trash-2" class="icon-sm"></i></button></div><div class="board-grid" id="cat-${cIdx}"></div>`;
+        section.innerHTML = `<div class="category-header"><span>${cat.name}</span><button class="close-btn" style="font-size:0.8rem" onclick="deleteCat(${cIdx})"><i data-lucide="trash-2" class="icon-sm"></i></button></div><div class="board-grid" id="cat-${cIdx}"></div>`;
         app.appendChild(section);
         cat.sites.forEach((site, sIdx) => {
             let domain = 'invalid';
@@ -192,16 +182,8 @@ function render() {
     lucide.createIcons();
 }
 
-/** 打开设置主页 **/
-function handleOpenSettings() {
-    openCustomModal('settingsModal');
-}
-
-/** 核心改进：直接跳转到 Setup 配置页面 **/
-function handleOpenSetup() {
-    openCustomModal('settingsModal');
-    showSettingPage('pageSetup');
-}
+function handleOpenSettings() { openCustomModal('settingsModal'); }
+function handleOpenSetup() { openCustomModal('settingsModal'); showSettingPage('pageSetup'); }
 
 function showSettingPage(pageId) {
     document.getElementById('settingsHome').classList.add('hide');
@@ -289,29 +271,17 @@ function addCategory() {
     if(n) { db.boards[db.activeIndex].categories.push({name: n, sites: []}); render(); pushToGist(); closeAllModals(); }
 }
 
-function deleteSite(c, s) { if(confirm(I18N[db.lang].confirmDelSite)) { db.boards[db.activeIndex].categories[c].sites.splice(s,1); render(); pushToGist(); } }
-function deleteCat(i) { if(confirm(I18N[db.lang].confirmDelCat)) { db.boards[db.activeIndex].categories.splice(i,1); render(); pushToGist(); } }
+function deleteSite(c, s) { if(confirm("Confirm Delete?")) { db.boards[db.activeIndex].categories[c].sites.splice(s,1); render(); pushToGist(); } }
+function deleteCat(i) { if(confirm("Confirm Delete?")) { db.boards[db.activeIndex].categories.splice(i,1); render(); pushToGist(); } }
 
 function openCustomModal(id) { 
     document.getElementById('modalOverlay').style.display = 'block'; 
     document.getElementById(id).classList.add('active'); 
-    if(id==='settingsModal') {
-        // 默认显示主页，除非通过 handleOpenSetup 覆盖
-        if (document.getElementById('pageSetup').classList.contains('hide')) {
-             showSettingsHome();
-        }
-        document.getElementById('ghToken').value = CONFIG.token || '';
-        document.getElementById('gistId').value = CONFIG.gistId || '';
-    }
 }
 
 function closeAllModals() {
     document.getElementById('modalOverlay').style.display = 'none';
     document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('active'));
-    // 延迟重置设置窗口状态，避免关闭时的闪烁
-    setTimeout(() => {
-        showSettingsHome();
-    }, 300);
 }
 
 function updateStatus(on) {

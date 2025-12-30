@@ -14,7 +14,7 @@
         <div class="nav-container">
             <div class="nav-brand" onclick="confirmReset()">
                 <span id="navBrandText">网址导航</span>
-                <div id="statusClickArea" title="Disconnect">
+                <div id="statusIndicator">
                     <span id="syncStatus" class="status-dot"></span>
                 </div>
             </div>
@@ -42,7 +42,7 @@
         <div id="app"></div>
     </main>
 
-    <footer class="footer" id="footerText">
+    <footer class="footer">
         © 2025 Khee. Crafted with ♥ for AI lovers.
     </footer>
 
@@ -60,17 +60,17 @@
             <div id="settingsHome">
                 <div class="setting-item" onclick="showSettingPage('pageLang')">
                     <div class="item-label"><i data-lucide="languages"></i> <span id="menuLangText">语言设置</span></div>
-                    <i data-lucide="chevron-right" class="arrow"></i>
+                    <i data-lucide="chevron-right"></i>
                 </div>
                 <div class="setting-divider"></div>
                 <div class="setting-item hide" id="menuBoardItem" onclick="showSettingPage('pageBoards')">
                     <div class="item-label"><i data-lucide="layers"></i> <span id="menuBoardText">面板管理</span></div>
-                    <i data-lucide="chevron-right" class="arrow"></i>
+                    <i data-lucide="chevron-right"></i>
                 </div>
                 <div class="setting-divider hide" id="menuBoardDivider"></div>
                 <div class="setting-item" onclick="showSettingPage('pageSetup')">
                     <div class="item-label"><i data-lucide="database"></i> <span id="menuSetupText">配置中心</span></div>
-                    <i data-lucide="chevron-right" class="arrow"></i>
+                    <i data-lucide="chevron-right"></i>
                 </div>
             </div>
 
@@ -116,8 +116,8 @@
         </div>
     </div>
 
-    <div class="custom-modal" id="siteModal"><div class="modal-header"><h3 id="modalTitleSite">新增网址</h3><button class="close-btn" onclick="closeAllModals()">&times;</button></div><div class="modal-body" style="padding:1.8rem"><div class="input-field"><label id="labelSelectCat" class="field-label">选择分类</label><select id="targetCat" class="custom-select"></select></div><div class="input-field"><label id="labelSiteName" class="field-label">名称</label><input type="text" id="siteName" class="custom-input"></div><div class="input-field"><label id="labelSiteUrl" class="field-label">网址</label><input type="text" id="siteUrl" class="custom-input" placeholder="www.google.com"></div><button class="save-btn" id="btnConfirmSite" onclick="addItem()">确认添加</button></div></div>
-    <div class="custom-modal" id="catModal"><div class="modal-header"><h3 id="modalTitleCat">新增分类</h3><button class="close-btn" onclick="closeAllModals()">&times;</button></div><div class="modal-body" style="padding:1.8rem"><div class="input-field"><label id="labelCatName" class="field-label">分类名称</label><input type="text" id="catName" class="custom-input"></div><button class="save-btn" id="btnConfirmCat" onclick="addCategory()">确认添加</button></div></div>
+    <div class="custom-modal" id="siteModal"><div class="modal-header"><h3>新增网址</h3><button class="close-btn" onclick="closeAllModals()">&times;</button></div><div class="modal-body p-18"><div class="input-field"><label class="field-label">选择分类</label><select id="targetCat" class="custom-select"></select></div><div class="input-field"><label class="field-label">名称</label><input type="text" id="siteName" class="custom-input"></div><div class="input-field"><label class="field-label">网址</label><input type="text" id="siteUrl" class="custom-input" placeholder="www.google.com"></div><button class="save-btn" onclick="addItem()">确认添加</button></div></div>
+    <div class="custom-modal" id="catModal"><div class="modal-header"><h3>新增分类</h3><button class="close-btn" onclick="closeAllModals()">&times;</button></div><div class="modal-body p-18"><div class="input-field"><label class="field-label">分类名称</label><input type="text" id="catName" class="custom-input"></div><button class="save-btn" onclick="addCategory()">确认添加</button></div></div>
 
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="script.js"></script>
