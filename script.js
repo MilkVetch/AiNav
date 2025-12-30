@@ -9,7 +9,7 @@ const I18N = {
         introTitle: "这个导航站能做什么？",
         introDesc: "基于 GitHub Gist 的极简导航。数据 100% 存储在您的私有账号中。",
         feature1: "多面板支持：按需分类，场景切换。",
-        feature2: "云端同步：电脑与手机浏览器无缝同步。",
+        feature2: "云端同步：电脑与手机浏览器实时无缝同步。",
         feature3: "纯净隐私：无追踪，极速响应。",
         tutorialTitle: "建议配置教程",
         tutorialStep1: "1. 访问 GitHub 设置，创建一个 Fine-grained Token。",
@@ -44,7 +44,8 @@ const GREETINGS = {
     en: { "00:00": "Midnight inspiration.", "05:00": "A new day begins.", "08:00": "Good morning, stay focused.", "12:00": "Take a short break.", "14:00": "Good afternoon.", "18:00": "Enjoy the sunset.", "21:00": "Music for the soul.", "23:00": "Good night, sweet dreams." }
 };
 
-let db = { activeIndex: 0, boards: [], lang: 'zh' };
+// 修改点 1：将初始状态的语言设为英文
+let db = { activeIndex: 0, boards: [], lang: 'en' };
 let isConfigured = false;
 const CONFIG = { token: localStorage.getItem('gh_token'), gistId: localStorage.getItem('gh_gist_id') };
 
@@ -63,7 +64,7 @@ function updateClock() {
     else if (h >= 12 && h < 18) glow = "rgba(100, 200, 255, 0.12)";
     document.documentElement.style.setProperty('--glow-color', glow);
     const greetingEl = document.getElementById('greetingText');
-    const lang = db.lang || 'zh';
+    const lang = db.lang || 'en';
     const hourKeys = Object.keys(GREETINGS[lang]).sort().reverse();
     const currentKey = hourKeys.find(key => h >= parseInt(key.split(':')[0])) || "00:00";
     const target = GREETINGS[lang][currentKey];
@@ -79,13 +80,14 @@ async function fetchData() {
         if (!res.ok) throw new Error();
         const gist = await res.json();
         const content = JSON.parse(gist.files['ainav.json'].content);
-        db = content.categories ? { activeIndex: 0, boards: [{title: "Main", categories: content.categories}], lang: 'zh' } : content;
+        // 数据升级时默认给 en
+        db = content.categories ? { activeIndex: 0, boards: [{title: "Main", categories: content.categories}], lang: 'en' } : content;
         isConfigured = true; render();
     } catch (err) { isConfigured = false; render(); }
 }
 
 function render() {
-    const dict = I18N[db.lang || 'zh'];
+    const dict = I18N[db.lang || 'en'];
     document.getElementById('navBrandText').innerText = dict.navBrand;
     document.getElementById('btnSettingsText').innerText = dict.settings;
     document.getElementById('searchInput').placeholder = dict.searchPlaceholder;
@@ -160,28 +162,34 @@ function render() {
     updateStatus(true);
 }
 
-// 其余辅助函数保持不变...
+// 修改点 2：一键复制生成的 JSON 默认设为英文
 function copyInitialJSON() {
-    const data = { activeIndex: 0, lang: db.lang || "zh", boards: [{ title: "Main", categories: [{ name: "Example", sites: [{ name: "Google", url: "https://www.google.com" }] }] }] };
+    const data = { 
+        activeIndex: 0, 
+        lang: "en", 
+        boards: [] 
+    };
     navigator.clipboard.writeText(JSON.stringify(data, null, 2)).then(() => {
         const btn = document.getElementById('copyBtn');
-        btn.innerText = I18N[db.lang||'zh'].copySuccess;
-        setTimeout(() => { btn.innerText = I18N[db.lang||'zh'].copyJsonBtn; }, 2000);
+        const originalText = btn.innerText;
+        btn.innerText = I18N[db.lang||'en'].copySuccess;
+        setTimeout(() => { btn.innerText = originalText; }, 2000);
     });
 }
+
 function setLanguage(l) { db.lang = l; render(); if(isConfigured) pushToGist(); }
 function showSettingPage(p) { document.getElementById('settingsHome').classList.add('hide'); document.querySelectorAll('.setting-detail-page').forEach(el => el.classList.add('hide')); document.getElementById(p).classList.remove('hide'); document.getElementById('settingsBackBtn').classList.remove('hide'); }
 function showSettingsHome() { document.getElementById('settingsHome').classList.remove('hide'); document.querySelectorAll('.setting-detail-page').forEach(el => el.classList.add('hide')); document.getElementById('settingsBackBtn').classList.add('hide'); }
 function addItem() { let u = document.getElementById('siteUrl').value.trim(); if(u && !/^https?:\/\//i.test(u)) u = 'https://'+u; const c = document.getElementById('targetCat').value; const n = document.getElementById('siteName').value; if(c!=="" && n && u) { db.boards[db.activeIndex].categories[c].sites.push({name:n, url:u}); closeAllModals(); render(); pushToGist(); } }
 async function pushToGist() { if(!isConfigured) return; try { await fetch(`https://api.github.com/gists/${CONFIG.gistId}`, { method: 'PATCH', headers: { 'Authorization': `token ${CONFIG.token}` }, body: JSON.stringify({ files: { 'ainav.json': { content: JSON.stringify(db, null, 2) } } }) }); updateStatus(true); } catch (e) { updateStatus(false); } }
-function confirmReset() { if (confirm(I18N[db.lang||'zh'].confirmReset)) { localStorage.clear(); location.reload(); } }
+function confirmReset() { if (confirm(I18N[db.lang||'en'].confirmReset)) { localStorage.clear(); location.reload(); } }
 function openCustomModal(id) { document.getElementById('modalOverlay').style.display = 'block'; document.getElementById(id).classList.add('active'); if(id==='settingsModal') showSettingsHome(); }
 function closeAllModals() { document.getElementById('modalOverlay').style.display = 'none'; document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('active')); }
 function handleOpenSettings() { openCustomModal('settingsModal'); }
 function saveSettings() { localStorage.setItem('gh_token', document.getElementById('ghToken').value.trim()); localStorage.setItem('gh_gist_id', document.getElementById('gistId').value.trim()); location.reload(); }
-function updateStatus(on) { const dot = document.getElementById('syncStatus'); if (dot) dot.className = `status-dot ${on ? 'status-online' : ''}`; }
+function updateStatus(on) { const dot = document.getElementById('syncStatus'); if (dot) dot.className = `status-dot ${on?'status-online':''}`; }
 function switchBoard(i) { db.activeIndex = parseInt(i); render(); pushToGist(); }
-function createNewBoard() { const n = prompt(I18N[db.lang||'zh'].promptNewBoard); if(n){ db.boards.push({title:n, categories:[]}); db.activeIndex=db.boards.length-1; render(); pushToGist(); } }
+function createNewBoard() { const n = prompt(I18N[db.lang||'en'].promptNewBoard); if(n){ db.boards.push({title:n, categories:[]}); db.activeIndex=db.boards.length-1; render(); pushToGist(); } }
 function renameBoard() { const n = document.getElementById('siteTitleInput').value.trim(); if(n){ db.boards[db.activeIndex].title = n; render(); pushToGist(); } }
 function deleteCurrentBoard() { if(confirm("Delete?")){ db.boards.splice(db.activeIndex,1); db.activeIndex=0; render(); pushToGist(); } }
 function addCategory() { const n = document.getElementById('catName').value; if(n){ db.boards[db.activeIndex].categories.push({name:n, sites:[]}); render(); pushToGist(); closeAllModals(); } }
