@@ -1,10 +1,10 @@
 /**
- * 网址导航核心逻辑 - 修复版
+ * 网址导航核心逻辑 - 修复布局与文案版
  */
 
 const I18N = {
     zh: {
-        navBrand: "网址导航", searchPlaceholder: "搜索或输入网址...", addSite: "+ 网址", addCat: "+ 分类", settings: "配置",
+        navBrand: "网址导航", searchPlaceholder: "搜索或输入网址...", addSite: "+ 网址", addCat: "+ 分类", settings: "Setup",
         modalTitleSettings: "Setup", menuLang: "语言设置", menuBoard: "面板管理", menuSetup: "Setup", 
         labelSwitchBoard: "切换面板", labelRenameBoard: "面板更名", btnApply: "应用", btnNew: "+ 新增", btnDel: "删除", 
         btnSave: "保存并同步", setupBtn: "开始配置", emptyBoard: "创建首个面板", confirmReset: "断开云端连接？", 
@@ -66,7 +66,6 @@ function updateClock() {
     if (h >= 5 && h < 12) glow = "rgba(255, 180, 100, 0.12)";
     else if (h >= 12 && h < 18) glow = "rgba(100, 200, 255, 0.12)";
     document.documentElement.style.setProperty('--glow-color', glow);
-    
     const greetingEl = document.getElementById('greetingText');
     const lang = db.lang || 'en';
     const hourKeys = Object.keys(GREETINGS[lang]).sort().reverse();
