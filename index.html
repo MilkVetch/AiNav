@@ -23,8 +23,8 @@
                 <button id="addSiteBtn" class="glass-btn hide" onclick="openCustomModal('siteModal')"></button>
                 <button id="addCatBtn" class="glass-btn hide" onclick="openCustomModal('catModal')"></button>
                 <button class="glass-btn primary" onclick="handleOpenSettings()">
-                    <i data-lucide="settings" class="icon-sm"></i>
-                    <span id="btnSettingsText">设置</span>
+                    <i data-lucide="settings" class="chevron-icon"></i>
+                    <span id="btnSettingsText">配置</span>
                 </button>
             </div>
         </div>
@@ -48,27 +48,36 @@
 
     <div class="custom-modal" id="settingsModal">
         <div class="modal-header">
-            <button class="back-btn hide" id="settingsBackBtn" onclick="showSettingsHome()">
-                <i data-lucide="chevron-left" class="icon-sm"></i>
+            <button class="back-link hide" id="settingsBackBtn" onclick="showSettingsHome()">
+                <i data-lucide="chevron-left" class="chevron-icon"></i>
             </button>
-            <h3 id="modalTitleSettings">系统设置</h3>
+            <h3 id="modalTitleSettings">Setup</h3>
             <button class="close-btn" onclick="closeAllModals()">&times;</button>
         </div>
         <div class="modal-body">
             <div id="settingsHome">
                 <div class="setting-item" onclick="showSettingPage('pageLang')">
-                    <div class="item-label"><i data-lucide="languages"></i> <span id="menuLangText">语言设置</span></div>
-                    <i data-lucide="chevron-right"></i>
+                    <div class="item-label">
+                        <i data-lucide="languages" class="menu-icon"></i> 
+                        <span id="menuLangText">语言设置</span>
+                    </div>
+                    <i data-lucide="chevron-right" class="chevron-icon"></i>
                 </div>
                 <div class="setting-divider"></div>
                 <div class="setting-item hide" id="menuBoardItem" onclick="showSettingPage('pageBoards')">
-                    <div class="item-label"><i data-lucide="layers"></i> <span id="menuBoardText">面板管理</span></div>
-                    <i data-lucide="chevron-right"></i>
+                    <div class="item-label">
+                        <i data-lucide="layers" class="menu-icon"></i> 
+                        <span id="menuBoardText">面板管理</span>
+                    </div>
+                    <i data-lucide="chevron-right" class="chevron-icon"></i>
                 </div>
                 <div class="setting-divider hide" id="menuBoardDivider"></div>
                 <div class="setting-item" onclick="showSettingPage('pageSetup')">
-                    <div class="item-label"><i data-lucide="database"></i> <span id="menuSetupText">配置中心</span></div>
-                    <i data-lucide="chevron-right"></i>
+                    <div class="item-label">
+                        <i data-lucide="database" class="menu-icon"></i> 
+                        <span id="menuSetupText">Setup</span>
+                    </div>
+                    <i data-lucide="chevron-right" class="chevron-icon"></i>
                 </div>
             </div>
 

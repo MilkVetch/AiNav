@@ -1,11 +1,11 @@
 /**
- * 网址导航核心逻辑 - 2025 全修版
+ * 网址导航核心逻辑 - 修复版
  */
 
 const I18N = {
     zh: {
-        navBrand: "网址导航", searchPlaceholder: "搜索或输入网址...", addSite: "+ 网址", addCat: "+ 分类", settings: "设置",
-        modalTitleSettings: "系统设置", menuLang: "语言设置", menuBoard: "面板管理", menuSetup: "配置中心", 
+        navBrand: "网址导航", searchPlaceholder: "搜索或输入网址...", addSite: "+ 网址", addCat: "+ 分类", settings: "配置",
+        modalTitleSettings: "Setup", menuLang: "语言设置", menuBoard: "面板管理", menuSetup: "Setup", 
         labelSwitchBoard: "切换面板", labelRenameBoard: "面板更名", btnApply: "应用", btnNew: "+ 新增", btnDel: "删除", 
         btnSave: "保存并同步", setupBtn: "开始配置", emptyBoard: "创建首个面板", confirmReset: "断开云端连接？", 
         promptNewBoard: "输入新面板名称：", introTitle: "这个导航站能做什么？",
@@ -20,8 +20,8 @@ const I18N = {
         copyJsonBtn: "复制初始化 JSON", copySuccess: "已复制！"
     },
     en: {
-        navBrand: "Nav Hub", searchPlaceholder: "Search...", addSite: "+ Site", addCat: "+ Category", settings: "Settings",
-        modalTitleSettings: "Settings", menuLang: "Language", menuBoard: "Boards", menuSetup: "Setup", 
+        navBrand: "Nav Hub", searchPlaceholder: "Search...", addSite: "+ Site", addCat: "+ Category", settings: "Setup",
+        modalTitleSettings: "Setup", menuLang: "Language", menuBoard: "Boards", menuSetup: "Setup", 
         labelSwitchBoard: "Switch", labelRenameBoard: "Rename", btnApply: "Apply", btnNew: "+ New", btnDel: "Delete", 
         btnSave: "Save & Sync", setupBtn: "Setup Now", emptyBoard: "Create Board", confirmReset: "Reset config?", 
         promptNewBoard: "Name:", introTitle: "What is this?",
@@ -119,7 +119,7 @@ function render() {
                     <p>${dict.introDesc}</p>
                     <ul><li>${dict.feature1}</li><li>${dict.feature2}</li><li>${dict.feature3}</li></ul>
                     <button class="save-btn" onclick="handleOpenSetup()">
-                        <i data-lucide="settings" class="icon-sm"></i> ${dict.setupBtn}
+                        <i data-lucide="settings" class="chevron-icon"></i> ${dict.setupBtn}
                     </button>
                 </div>
                 <div class="welcome-card">
@@ -130,7 +130,7 @@ function render() {
                         <div class="tutorial-step">${dict.tutorialStep3}</div>
                     </div>
                     <button class="glass-btn" id="copyBtn" onclick="copyInitialJSON()">
-                        <i data-lucide="copy" class="icon-sm"></i> ${dict.copyJsonBtn}
+                        <i data-lucide="copy" class="chevron-icon"></i> ${dict.copyJsonBtn}
                     </button>
                 </div>
             </div>
@@ -168,7 +168,7 @@ function render() {
     board.categories.forEach((cat, cIdx) => {
         catSelect.innerHTML += `<option value="${cIdx}">${cat.name}</option>`;
         const section = document.createElement('section');
-        section.innerHTML = `<div class="category-header"><span>${cat.name}</span><button class="close-btn" style="font-size:0.8rem" onclick="deleteCat(${cIdx})"><i data-lucide="trash-2" class="icon-sm"></i></button></div><div class="board-grid" id="cat-${cIdx}"></div>`;
+        section.innerHTML = `<div class="category-header"><span>${cat.name}</span><button class="close-btn" style="font-size:0.8rem" onclick="deleteCat(${cIdx})"><i data-lucide="trash-2" class="chevron-icon"></i></button></div><div class="board-grid" id="cat-${cIdx}"></div>`;
         app.appendChild(section);
         cat.sites.forEach((site, sIdx) => {
             let domain = 'invalid';
@@ -179,18 +179,8 @@ function render() {
     lucide.createIcons();
 }
 
-/** 弹窗核心逻辑 **/
-function openCustomModal(id) { 
-    document.getElementById('modalOverlay').classList.add('active'); 
-    document.getElementById(id).classList.add('active'); 
-}
-
-function closeAllModals() {
-    document.getElementById('modalOverlay').classList.remove('active');
-    document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('active'));
-    setTimeout(showSettingsHome, 300);
-}
-
+function openCustomModal(id) { document.getElementById('modalOverlay').classList.add('active'); document.getElementById(id).classList.add('active'); }
+function closeAllModals() { document.getElementById('modalOverlay').classList.remove('active'); document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('active')); setTimeout(showSettingsHome, 300); }
 function handleOpenSettings() { openCustomModal('settingsModal'); }
 function handleOpenSetup() { openCustomModal('settingsModal'); showSettingPage('pageSetup'); }
 
