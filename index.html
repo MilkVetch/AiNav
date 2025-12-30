@@ -8,7 +8,7 @@
 </head>
 <body class="theme-classic">
 
-    <div class="bg-glow" id="bgGlow"></div>
+    <div class="bg-glow"></div>
 
     <nav class="navbar">
         <div class="nav-container">
@@ -31,7 +31,7 @@
     </nav>
 
     <main class="content-wrapper">
-        <header class="hero-section" id="heroArea">
+        <header class="hero-section">
             <h1 id="digitalClock">00:00</h1>
             <p id="greetingText">...</p>
             <div class="search-bar" id="searchBarArea">
@@ -42,9 +42,7 @@
         <div id="app"></div>
     </main>
 
-    <footer class="footer">
-        © 2025 Khee. Crafted with ♥ for AI lovers.
-    </footer>
+    <footer class="footer">© 2025 Khee. Crafted with ♥ for AI lovers.</footer>
 
     <div class="custom-overlay" id="modalOverlay" onclick="closeAllModals()"></div>
 
@@ -88,14 +86,13 @@
                 <div class="detail-container">
                     <label class="field-label" id="labelSwitchBoard">切换面板</label>
                     <select id="boardSwitcher" class="custom-select" onchange="switchBoard(this.value)"></select>
-                    <label class="field-label" id="labelRenameBoard">更名面板</label>
                     <div class="input-group">
                         <input type="text" id="siteTitleInput" class="custom-input">
-                        <button class="action-btn-small" id="btnApplyRename" onclick="renameBoard()">应用</button>
+                        <button class="action-btn-small" onclick="renameBoard()">应用</button>
                     </div>
                     <div class="btn-row">
-                        <button class="action-btn success" id="btnNewBoard" onclick="createNewBoard()">+ 新增</button>
-                        <button class="action-btn danger" id="btnDelBoard" onclick="deleteCurrentBoard()">删除</button>
+                        <button class="action-btn success" onclick="createNewBoard()">+ 新增</button>
+                        <button class="action-btn danger" onclick="deleteCurrentBoard()">删除</button>
                     </div>
                 </div>
             </div>
@@ -116,8 +113,23 @@
         </div>
     </div>
 
-    <div class="custom-modal" id="siteModal"><div class="modal-header"><h3>新增网址</h3><button class="close-btn" onclick="closeAllModals()">&times;</button></div><div class="modal-body p-18"><div class="input-field"><label class="field-label">选择分类</label><select id="targetCat" class="custom-select"></select></div><div class="input-field"><label class="field-label">名称</label><input type="text" id="siteName" class="custom-input"></div><div class="input-field"><label class="field-label">网址</label><input type="text" id="siteUrl" class="custom-input" placeholder="www.google.com"></div><button class="save-btn" onclick="addItem()">确认添加</button></div></div>
-    <div class="custom-modal" id="catModal"><div class="modal-header"><h3>新增分类</h3><button class="close-btn" onclick="closeAllModals()">&times;</button></div><div class="modal-body p-18"><div class="input-field"><label class="field-label">分类名称</label><input type="text" id="catName" class="custom-input"></div><button class="save-btn" onclick="addCategory()">确认添加</button></div></div>
+    <div class="custom-modal" id="siteModal">
+        <div class="modal-header"><h3>新增网址</h3><button class="close-btn" onclick="closeAllModals()">&times;</button></div>
+        <div class="modal-body p-18">
+            <div class="input-field"><label class="field-label">选择分类</label><select id="targetCat" class="custom-select"></select></div>
+            <div class="input-field"><label class="field-label">名称</label><input type="text" id="siteName" class="custom-input"></div>
+            <div class="input-field"><label class="field-label">网址</label><input type="text" id="siteUrl" class="custom-input" placeholder="www.google.com"></div>
+            <button class="save-btn" onclick="addItem()">确认添加</button>
+        </div>
+    </div>
+
+    <div class="custom-modal" id="catModal">
+        <div class="modal-header"><h3>新增分类</h3><button class="close-btn" onclick="closeAllModals()">&times;</button></div>
+        <div class="modal-body p-18">
+            <div class="input-field"><label class="field-label">分类名称</label><input type="text" id="catName" class="custom-input"></div>
+            <button class="save-btn" onclick="addCategory()">确认添加</button>
+        </div>
+    </div>
 
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="script.js"></script>

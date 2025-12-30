@@ -1,5 +1,5 @@
 /**
- * 网址导航核心逻辑 - 修复版
+ * 网址导航核心逻辑 - 2025 全修版
  */
 
 const I18N = {
@@ -17,8 +17,7 @@ const I18N = {
         tutorialStep1: "1. 访问 GitHub 设置，创建一个 Fine-grained Token。",
         tutorialStep2: "2. 权限：必须勾选 Gists 的读写权限。",
         tutorialStep3: "3. 新建一个 Gist，包含文件 ainav.json。",
-        copyJsonBtn: "复制初始化 JSON",
-        copySuccess: "已复制！"
+        copyJsonBtn: "复制初始化 JSON", copySuccess: "已复制！"
     },
     en: {
         navBrand: "Nav Hub", searchPlaceholder: "Search...", addSite: "+ Site", addCat: "+ Category", settings: "Settings",
@@ -34,8 +33,7 @@ const I18N = {
         tutorialStep1: "1. Create a Fine-grained Token in GitHub.",
         tutorialStep2: "2. Perms: Grant Gists read/write access.",
         tutorialStep3: "3. Create a Gist with ainav.json file.",
-        copyJsonBtn: "Copy Initial JSON",
-        copySuccess: "Copied!"
+        copyJsonBtn: "Copy Initial JSON", copySuccess: "Copied!"
     }
 };
 
@@ -51,7 +49,7 @@ const CONFIG = { token: localStorage.getItem('gh_token'), gistId: localStorage.g
 function init() {
     updateClock(); 
     setInterval(updateClock, 1000);
-    updateStatus(false); // 初始状态显示红色
+    updateStatus(false);
     if (CONFIG.token && CONFIG.gistId) {
         fetchData();
     } else {
@@ -62,12 +60,13 @@ function init() {
 
 function updateClock() {
     const now = new Date();
-    const h = now.getHours(), m = now.getMinutes();
-    document.getElementById('digitalClock').innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    const h = now.getHours();
+    document.getElementById('digitalClock').innerText = `${h.toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
     let glow = "rgba(150, 100, 255, 0.12)";
     if (h >= 5 && h < 12) glow = "rgba(255, 180, 100, 0.12)";
     else if (h >= 12 && h < 18) glow = "rgba(100, 200, 255, 0.12)";
     document.documentElement.style.setProperty('--glow-color', glow);
+    
     const greetingEl = document.getElementById('greetingText');
     const lang = db.lang || 'en';
     const hourKeys = Object.keys(GREETINGS[lang]).sort().reverse();
@@ -75,10 +74,7 @@ function updateClock() {
     const target = GREETINGS[lang][currentKey];
     if (greetingEl.innerText !== target) {
         greetingEl.style.opacity = "0";
-        setTimeout(() => {
-            greetingEl.innerText = target;
-            greetingEl.style.opacity = "1";
-        }, 600);
+        setTimeout(() => { greetingEl.innerText = target; greetingEl.style.opacity = "1"; }, 600);
     }
 }
 
@@ -150,10 +146,10 @@ function render() {
     document.getElementById('addCatBtn').classList.remove('hide');
     document.getElementById('addSiteBtn').innerText = dict.addSite;
     document.getElementById('addCatBtn').innerText = dict.addCat;
+    
     const board = db.boards[db.activeIndex] || db.boards[0];
-
     if (!board) {
-        app.innerHTML = `<div class="hero-section"><button class="save-btn" style="max-width:200px; margin: 0 auto;" onclick="createNewBoard()">${dict.emptyBoard}</button></div>`;
+        app.innerHTML = `<button class="save-btn" onclick="createNewBoard()">${dict.emptyBoard}</button>`;
         return;
     }
 
@@ -165,6 +161,7 @@ function render() {
     document.getElementById('btnDelBoard').innerText = dict.btnDel;
     document.getElementById('btnSaveConfig').innerText = dict.btnSave;
     document.getElementById('boardSwitcher').innerHTML = db.boards.map((b, i) => `<option value="${i}" ${i==db.activeIndex?'selected':''}>${b.title}</option>`).join('');
+    
     app.innerHTML = '';
     const catSelect = document.getElementById('targetCat');
     catSelect.innerHTML = '';
@@ -180,6 +177,18 @@ function render() {
         });
     });
     lucide.createIcons();
+}
+
+/** 弹窗核心逻辑 **/
+function openCustomModal(id) { 
+    document.getElementById('modalOverlay').classList.add('active'); 
+    document.getElementById(id).classList.add('active'); 
+}
+
+function closeAllModals() {
+    document.getElementById('modalOverlay').classList.remove('active');
+    document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('active'));
+    setTimeout(showSettingsHome, 300);
 }
 
 function handleOpenSettings() { openCustomModal('settingsModal'); }
@@ -198,11 +207,7 @@ function showSettingsHome() {
     document.getElementById('settingsBackBtn').classList.add('hide');
 }
 
-function setLanguage(lang) {
-    db.lang = lang;
-    render();
-    if (isConfigured) pushToGist();
-}
+function setLanguage(lang) { db.lang = lang; render(); if (isConfigured) pushToGist(); }
 
 function copyInitialJSON() {
     const data = { activeIndex: 0, lang: "en", boards: [] };
@@ -234,61 +239,8 @@ async function pushToGist() {
     } catch (e) { updateStatus(false); }
 }
 
-function confirmReset() {
-    if (confirm(I18N[db.lang||'en'].confirmReset)) {
-        localStorage.clear();
-        location.reload();
-    }
-}
-
-function addItem() {
-    let url = document.getElementById('siteUrl').value.trim();
-    if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
-    const cIdx = document.getElementById('targetCat').value;
-    const n = document.getElementById('siteName').value;
-    if (cIdx !== "" && n && url) {
-        db.boards[db.activeIndex].categories[cIdx].sites.push({ name: n, url: url });
-        closeAllModals(); render(); pushToGist();
-    }
-}
-
-function createNewBoard() {
-    const n = prompt(I18N[db.lang||'en'].promptNewBoard);
-    if(n) { db.boards.push({title: n, categories: []}); db.activeIndex = db.boards.length - 1; render(); pushToGist(); }
-}
-
-function renameBoard() {
-    const n = document.getElementById('siteTitleInput').value.trim();
-    if(n) { db.boards[db.activeIndex].title = n; render(); pushToGist(); }
-}
-
-function deleteCurrentBoard() {
-    if(confirm("Delete this board?")) { db.boards.splice(db.activeIndex, 1); db.activeIndex = 0; render(); pushToGist(); }
-}
-
-function addCategory() {
-    const n = document.getElementById('catName').value.trim();
-    if(n) { db.boards[db.activeIndex].categories.push({name: n, sites: []}); render(); pushToGist(); closeAllModals(); }
-}
-
-function deleteSite(c, s) { if(confirm("Confirm Delete?")) { db.boards[db.activeIndex].categories[c].sites.splice(s,1); render(); pushToGist(); } }
-function deleteCat(i) { if(confirm("Confirm Delete?")) { db.boards[db.activeIndex].categories.splice(i,1); render(); pushToGist(); } }
-
-function openCustomModal(id) { 
-    document.getElementById('modalOverlay').style.display = 'block'; 
-    document.getElementById(id).classList.add('active'); 
-}
-
-function closeAllModals() {
-    document.getElementById('modalOverlay').style.display = 'none';
-    document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('active'));
-}
-
-function updateStatus(on) {
-    const dot = document.getElementById('syncStatus');
-    if (dot) dot.className = `status-dot ${on ? 'status-online' : ''}`;
-}
-
+function confirmReset() { if (confirm(I18N[db.lang||'en'].confirmReset)) { localStorage.clear(); location.reload(); } }
+function updateStatus(on) { const dot = document.getElementById('syncStatus'); if (dot) dot.className = `status-dot ${on ? 'status-online' : ''}`; }
 function switchBoard(i) { db.activeIndex = parseInt(i); render(); pushToGist(); }
 
 function handleSearch(e) {
