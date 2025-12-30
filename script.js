@@ -1,11 +1,17 @@
+/**
+ * 网址导航核心逻辑 - 2025 全新版
+ * 包含：双语 I18N、动态时间系统、Gist 同步与设置菜单导航
+ */
+
 const I18N = {
     zh: {
         navBrand: "网址导航", searchPlaceholder: "搜索或输入网址...", addSite: "+ 网址", addCat: "+ 分类", settings: "设置",
-        modalTitleSettings: "系统设置", menuLang: "语言设置", menuBoard: "面板管理", menuBackend: "后端配置", labelSwitchBoard: "切换面板",
-        labelRenameBoard: "面板更名", btnApply: "应用", btnNew: "+ 新增", btnDel: "删除", btnSave: "连接并保存", modalTitleSite: "新增网址",
-        labelSelectCat: "选择分类", labelSiteName: "名称", labelSiteUrl: "网址", btnConfirm: "确认", modalTitleCat: "新增分类",
-        labelCatName: "分类名称", setupBtn: "去配置", emptyBoard: "创建首个面板",
-        confirmDelSite: "确认删除网址？", confirmDelCat: "确认删除分类？", confirmReset: "断开云端连接？", promptNewBoard: "输入新面板名称：",
+        modalTitleSettings: "系统设置", menuLang: "语言设置", menuBoard: "面板管理", menuBackend: "后端配置", 
+        labelSwitchBoard: "切换面板", labelRenameBoard: "面板更名", btnApply: "应用", btnNew: "+ 新增", btnDel: "删除", 
+        btnSave: "保存并同步", modalTitleSite: "新增网址", labelSelectCat: "选择分类", labelSiteName: "名称", 
+        labelSiteUrl: "网址", btnConfirm: "确认添加", modalTitleCat: "新增分类", labelCatName: "分类名称", 
+        setupBtn: "去配置", emptyBoard: "创建首个面板", confirmDelSite: "确认删除网址？", 
+        confirmDelCat: "确认删除分类？", confirmReset: "断开云端连接？", promptNewBoard: "输入新面板名称：",
         introTitle: "这个导航站能做什么？",
         introDesc: "基于 GitHub Gist 的极简导航。数据 100% 存储在您的私有账号中。",
         feature1: "多面板支持：按需分类，场景切换。",
@@ -20,11 +26,12 @@ const I18N = {
     },
     en: {
         navBrand: "Nav Hub", searchPlaceholder: "Search...", addSite: "+ Site", addCat: "+ Category", settings: "Settings",
-        modalTitleSettings: "Settings", menuLang: "Language", menuBoard: "Boards", menuBackend: "Gist Config", labelSwitchBoard: "Switch",
-        labelRenameBoard: "Rename", btnApply: "Apply", btnNew: "+ New", btnDel: "Delete", btnSave: "Save & Sync", modalTitleSite: "Add Site",
-        labelSelectCat: "Category", labelSiteName: "Name", labelSiteUrl: "URL", btnConfirm: "Confirm", modalTitleCat: "Add Category",
-        labelCatName: "Name", setupBtn: "Setup", emptyBoard: "Create Board",
-        confirmDelSite: "Delete?", confirmDelCat: "Delete category?", confirmReset: "Reset config?", promptNewBoard: "Name:",
+        modalTitleSettings: "Settings", menuLang: "Language", menuBoard: "Boards", menuBackend: "Storage", 
+        labelSwitchBoard: "Switch", labelRenameBoard: "Rename", btnApply: "Apply", btnNew: "+ New", btnDel: "Delete", 
+        btnSave: "Save & Sync", modalTitleSite: "Add Site", labelSelectCat: "Category", labelSiteName: "Name", 
+        labelSiteUrl: "URL", btnConfirm: "Confirm", modalTitleCat: "Add Category", labelCatName: "Name", 
+        setupBtn: "Setup", emptyBoard: "Create Board", confirmDelSite: "Delete?", 
+        confirmDelCat: "Delete category?", confirmReset: "Reset config?", promptNewBoard: "Name:",
         introTitle: "What is this?",
         introDesc: "A minimal dashboard powered by GitHub Gist. 100% private data storage.",
         feature1: "Multi-Boards: Organize Work and Life.",
@@ -44,49 +51,84 @@ const GREETINGS = {
     en: { "00:00": "Midnight inspiration.", "05:00": "A new day begins.", "08:00": "Good morning, stay focused.", "12:00": "Take a short break.", "14:00": "Good afternoon.", "18:00": "Enjoy the sunset.", "21:00": "Music for the soul.", "23:00": "Good night, sweet dreams." }
 };
 
-let db = { activeIndex: 0, boards: [], lang: 'zh' };
+let db = { activeIndex: 0, boards: [], lang: 'en' };
 let isConfigured = false;
 const CONFIG = { token: localStorage.getItem('gh_token'), gistId: localStorage.getItem('gh_gist_id') };
 
+// 1. 初始化入口
 function init() {
-    updateClock(); setInterval(updateClock, 1000);
-    if (CONFIG.token && CONFIG.gistId) fetchData(); else render();
+    updateClock(); 
+    setInterval(updateClock, 1000);
+    
+    if (CONFIG.token && CONFIG.gistId) {
+        fetchData();
+    } else {
+        render(); // 未配置时显示引导页
+    }
     lucide.createIcons();
 }
 
+// 2. 动态更新：时间、背景光晕、双语问候
 function updateClock() {
     const now = new Date();
     const h = now.getHours(), m = now.getMinutes();
+    
+    // 数字时钟更新
     document.getElementById('digitalClock').innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-    let glow = "rgba(150, 100, 255, 0.12)";
-    if (h >= 5 && h < 12) glow = "rgba(255, 180, 100, 0.12)";
-    else if (h >= 12 && h < 18) glow = "rgba(100, 200, 255, 0.12)";
+
+    // 背景颜色随时间流转
+    let glow = "rgba(150, 100, 255, 0.12)"; // 默认深夜紫
+    if (h >= 5 && h < 12) glow = "rgba(255, 180, 100, 0.12)"; // 晨光橘
+    else if (h >= 12 && h < 18) glow = "rgba(100, 200, 255, 0.12)"; // 午后蓝
     document.documentElement.style.setProperty('--glow-color', glow);
+
+    // 动态双语问候语
     const greetingEl = document.getElementById('greetingText');
-    const lang = db.lang || 'zh';
+    const lang = db.lang || 'en';
     const hourKeys = Object.keys(GREETINGS[lang]).sort().reverse();
     const currentKey = hourKeys.find(key => h >= parseInt(key.split(':')[0])) || "00:00";
     const target = GREETINGS[lang][currentKey];
+
     if (greetingEl.innerText !== target) {
         greetingEl.style.opacity = "0";
-        setTimeout(() => { greetingEl.innerText = target; greetingEl.style.opacity = "1"; }, 600);
+        setTimeout(() => {
+            greetingEl.innerText = target;
+            greetingEl.style.opacity = "1";
+        }, 600);
     }
 }
 
+// 3. 数据层：Gist 拉取与兼容处理
 async function fetchData() {
     try {
-        const res = await fetch(`https://api.github.com/gists/${CONFIG.gistId}`, { headers: { 'Authorization': `token ${CONFIG.token}` } });
+        const res = await fetch(`https://api.github.com/gists/${CONFIG.gistId}`, {
+            headers: { 'Authorization': `token ${CONFIG.token}` }
+        });
         if (!res.ok) throw new Error();
         const gist = await res.json();
         const content = JSON.parse(gist.files['ainav.json'].content);
-        db = content.categories ? { activeIndex: 0, boards: [{title: "Main", categories: content.categories}], lang: 'zh' } : content;
-        isConfigured = true; render();
-    } catch (err) { isConfigured = false; render(); }
+        
+        // 兼容性升级：旧结构 -> 多面板结构
+        db = content.categories ? { 
+            activeIndex: 0, 
+            boards: [{ title: "Main", categories: content.categories }], 
+            lang: content.lang || 'en' 
+        } : content;
+
+        isConfigured = true;
+        updateStatus(true);
+        render();
+    } catch (err) {
+        isConfigured = false;
+        render();
+    }
 }
 
-// 核心渲染：包含全新的教程步骤包裹器
+// 4. 核心渲染：包含欢迎页、面板导航、双语切换逻辑
 function render() {
-    const dict = I18N[db.lang || 'zh'];
+    const dict = I18N[db.lang || 'en'];
+    
+    // 更新基础文本
     document.getElementById('navBrandText').innerText = dict.navBrand;
     document.getElementById('btnSettingsText').innerText = dict.settings;
     document.getElementById('searchInput').placeholder = dict.searchPlaceholder;
@@ -95,17 +137,28 @@ function render() {
     document.getElementById('modalTitleSettings').innerText = dict.modalTitleSettings;
 
     const app = document.getElementById('app');
+
+    // 情况 A：未配置状态 - 显示双语欢迎/教程页
     if (!isConfigured) {
         document.getElementById('searchBarArea').classList.add('hide');
         document.getElementById('menuBoardItem').classList.add('hide');
         document.getElementById('menuBoardDivider').classList.add('hide');
+        document.getElementById('addSiteBtn').classList.add('hide');
+        document.getElementById('addCatBtn').classList.add('hide');
+
         app.innerHTML = `
             <div class="welcome-container">
                 <div class="welcome-card">
                     <h4>✨ ${dict.introTitle}</h4>
                     <p>${dict.introDesc}</p>
-                    <ul><li>${dict.feature1}</li><li>${dict.feature2}</li><li>${dict.feature3}</li></ul>
-                    <button class="save-btn" onclick="handleOpenSettings()">${dict.setupBtn}</button>
+                    <ul>
+                        <li>${dict.feature1}</li>
+                        <li>${dict.feature2}</li>
+                        <li>${dict.feature3}</li>
+                    </ul>
+                    <button class="save-btn" onclick="handleOpenSettings()">
+                        <i data-lucide="settings" class="icon-sm"></i> ${dict.setupBtn}
+                    </button>
                 </div>
                 <div class="welcome-card">
                     <h4>📖 ${dict.tutorialTitle}</h4>
@@ -114,12 +167,17 @@ function render() {
                         <div class="tutorial-step">${dict.tutorialStep2}</div>
                         <div class="tutorial-step">${dict.tutorialStep3}</div>
                     </div>
-                    <button class="glass-btn" id="copyBtn" onclick="copyInitialJSON()">${dict.copyJsonBtn}</button>
+                    <button class="glass-btn" id="copyBtn" onclick="copyInitialJSON()">
+                        <i data-lucide="copy" class="icon-sm"></i> ${dict.copyJsonBtn}
+                    </button>
                 </div>
-            </div>`;
-        lucide.createIcons(); return;
+            </div>
+        `;
+        lucide.createIcons();
+        return;
     }
 
+    // 情况 B：已配置状态 - 显示主功能区
     document.getElementById('searchBarArea').classList.remove('hide');
     document.getElementById('menuBoardItem').classList.remove('hide');
     document.getElementById('menuBoardDivider').classList.remove('hide');
@@ -129,8 +187,20 @@ function render() {
     document.getElementById('addCatBtn').innerText = dict.addCat;
 
     const board = db.boards[db.activeIndex] || db.boards[0];
-    if (!board) { app.innerHTML = `<div class="hero-section"><button class="save-btn" style="max-width:180px; margin: 0 auto;" onclick="createNewBoard()">${dict.emptyBoard}</button></div>`; return; }
 
+    // 如果面板数组为空
+    if (!board) {
+        app.innerHTML = `
+            <div class="hero-section">
+                <button class="save-btn" style="max-width:200px; margin: 0 auto;" onclick="createNewBoard()">
+                    ${dict.emptyBoard}
+                </button>
+            </div>`;
+        return;
+    }
+
+    // 填充弹窗与详情页文本
+    document.getElementById('menuBoardText').innerText = dict.menuBoard;
     document.getElementById('labelSwitchBoard').innerText = dict.labelSwitchBoard;
     document.getElementById('labelRenameBoard').innerText = dict.labelRenameBoard;
     document.getElementById('btnApplyRename').innerText = dict.btnApply;
@@ -142,7 +212,11 @@ function render() {
     document.getElementById('modalTitleCat').innerText = dict.modalTitleCat;
     document.getElementById('btnConfirmCat').innerText = dict.btnConfirm;
 
-    document.getElementById('boardSwitcher').innerHTML = db.boards.map((b, i) => `<option value="${i}" ${i==db.activeIndex?'selected':''}>${b.title}</option>`).join('');
+    // 渲染面板内容
+    document.getElementById('boardSwitcher').innerHTML = db.boards.map((b, i) => 
+        `<option value="${i}" ${i==db.activeIndex?'selected':''}>${b.title}</option>`
+    ).join('');
+    
     app.innerHTML = '';
     const catSelect = document.getElementById('targetCat');
     catSelect.innerHTML = '';
@@ -150,18 +224,57 @@ function render() {
     board.categories.forEach((cat, cIdx) => {
         catSelect.innerHTML += `<option value="${cIdx}">${cat.name}</option>`;
         const section = document.createElement('section');
-        section.innerHTML = `<div class="category-header"><span>${cat.name}</span><button class="close-btn" style="font-size:1rem" onclick="deleteCat(${cIdx})"><i data-lucide="trash-2" class="icon-sm"></i></button></div><div class="board-grid" id="cat-${cIdx}"></div>`;
+        section.innerHTML = `
+            <div class="category-header">
+                <span>${cat.name}</span>
+                <button class="close-btn" style="font-size:1rem" onclick="deleteCat(${cIdx})">
+                    <i data-lucide="trash-2" class="icon-sm"></i>
+                </button>
+            </div>
+            <div class="board-grid" id="cat-${cIdx}"></div>
+        `;
         app.appendChild(section);
+
         cat.sites.forEach((site, sIdx) => {
-            let domain = 'invalid'; try { domain = new URL(site.url).hostname; } catch(e) {}
-            document.getElementById(`cat-${cIdx}`).innerHTML += `<a href="${site.url}" target="_blank" class="link-card"><button class="del-site-btn" onclick="event.preventDefault(); deleteSite(${cIdx}, ${sIdx})">&times;</button><img src="https://www.google.com/s2/favicons?sz=128&domain=${domain}" onerror="this.src='https://lucide.dev/favicon.ico'"><span>${site.name}</span></a>`;
+            let domain = 'invalid';
+            try { domain = new URL(site.url).hostname; } catch(e) {} // 防崩溃逻辑
+            document.getElementById(`cat-${cIdx}`).innerHTML += `
+                <a href="${site.url}" target="_blank" class="link-card">
+                    <button class="del-site-btn" onclick="event.preventDefault(); deleteSite(${cIdx}, ${sIdx})">
+                        &times;
+                    </button>
+                    <img src="https://www.google.com/s2/favicons?sz=128&domain=${domain}" onerror="this.src='https://lucide.dev/favicon.ico'">
+                    <span>${site.name}</span>
+                </a>
+            `;
         });
     });
     lucide.createIcons();
 }
 
+// 5. 设置菜单导航逻辑
+function showSettingPage(pageId) {
+    document.getElementById('settingsHome').classList.add('hide');
+    document.querySelectorAll('.setting-detail-page').forEach(p => p.classList.add('hide'));
+    document.getElementById(pageId).classList.remove('hide');
+    document.getElementById('settingsBackBtn').classList.remove('hide');
+}
+
+function showSettingsHome() {
+    document.getElementById('settingsHome').classList.remove('hide');
+    document.querySelectorAll('.setting-detail-page').forEach(p => p.classList.add('hide'));
+    document.getElementById('settingsBackBtn').classList.add('hide');
+}
+
+// 6. 核心功能函数
+function setLanguage(lang) {
+    db.lang = lang;
+    render();
+    if (isConfigured) pushToGist();
+}
+
 function copyInitialJSON() {
-    const data = { activeIndex: 0, lang: db.lang || "en", boards: [] };
+    const data = { activeIndex: 0, lang: "en", boards: [] }; // 纯净英文初始版
     navigator.clipboard.writeText(JSON.stringify(data, null, 2)).then(() => {
         const btn = document.getElementById('copyBtn');
         const originalText = btn.innerText;
@@ -170,24 +283,95 @@ function copyInitialJSON() {
     });
 }
 
-function setLanguage(l) { db.lang = l; render(); if(isConfigured) pushToGist(); }
-function showSettingPage(p) { document.getElementById('settingsHome').classList.add('hide'); document.querySelectorAll('.setting-detail-page').forEach(el => el.classList.add('hide')); document.getElementById(p).classList.remove('hide'); document.getElementById('settingsBackBtn').classList.remove('hide'); }
-function showSettingsHome() { document.getElementById('settingsHome').classList.remove('hide'); document.querySelectorAll('.setting-detail-page').forEach(el => el.classList.add('hide')); document.getElementById('settingsBackBtn').classList.add('hide'); }
-function addItem() { let u = document.getElementById('siteUrl').value.trim(); if(u && !/^https?:\/\//i.test(u)) u = 'https://'+u; const c = document.getElementById('targetCat').value; const n = document.getElementById('siteName').value; if(c!=="" && n && u) { db.boards[db.activeIndex].categories[c].sites.push({name:n, url:u}); closeAllModals(); render(); pushToGist(); } }
-async function pushToGist() { if(!isConfigured) return; try { await fetch(`https://api.github.com/gists/${CONFIG.gistId}`, { method: 'PATCH', headers: { 'Authorization': `token ${CONFIG.token}` }, body: JSON.stringify({ files: { 'ainav.json': { content: JSON.stringify(db, null, 2) } } }) }); updateStatus(true); } catch (e) { updateStatus(false); } }
-function confirmReset() { if (confirm(I18N[db.lang||'en'].confirmReset)) { localStorage.clear(); location.reload(); } }
-function openCustomModal(id) { document.getElementById('modalOverlay').style.display = 'block'; document.getElementById(id).classList.add('active'); if(id==='settingsModal') showSettingsHome(); }
-function closeAllModals() { document.getElementById('modalOverlay').style.display = 'none'; document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('active')); }
-function handleOpenSettings() { openCustomModal('settingsModal'); }
-function saveSettings() { localStorage.setItem('gh_token', document.getElementById('ghToken').value.trim()); localStorage.setItem('gh_gist_id', document.getElementById('gistId').value.trim()); location.reload(); }
-function updateStatus(on) { const dot = document.getElementById('syncStatus'); if (dot) dot.className = `status-dot ${on?'status-online':''}`; }
-function switchBoard(i) { db.activeIndex = parseInt(i); render(); pushToGist(); }
-function createNewBoard() { const n = prompt(I18N[db.lang||'en'].promptNewBoard); if(n){ db.boards.push({title:n, categories:[]}); db.activeIndex=db.boards.length-1; render(); pushToGist(); } }
-function renameBoard() { const n = document.getElementById('siteTitleInput').value.trim(); if(n){ db.boards[db.activeIndex].title = n; render(); pushToGist(); } }
-function deleteCurrentBoard() { if(confirm("Delete?")){ db.boards.splice(db.activeIndex,1); db.activeIndex=0; render(); pushToGist(); } }
-function addCategory() { const n = document.getElementById('catName').value; if(n){ db.boards[db.activeIndex].categories.push({name:n, sites:[]}); render(); pushToGist(); closeAllModals(); } }
-function deleteSite(c, s) { if(confirm("Delete?")){ db.boards[db.activeIndex].categories[c].sites.splice(s,1); render(); pushToGist(); } }
-function deleteCat(i) { if(confirm("Delete?")){ db.boards[db.activeIndex].categories.splice(i,1); render(); pushToGist(); } }
-function handleSearch(e) { if (e.key === 'Enter') { const q = e.target.value; window.open(q.includes('.') ? (q.startsWith('http') ? q : 'https://'+q) : 'https://www.google.com/search?q='+encodeURIComponent(q)); } }
+function saveSettings() {
+    const token = document.getElementById('ghToken').value.trim();
+    const id = document.getElementById('gistId').value.trim();
+    if (token) localStorage.setItem('gh_token', token);
+    if (id) localStorage.setItem('gh_gist_id', id);
+    location.reload();
+}
 
+async function pushToGist() {
+    if (!isConfigured) return;
+    try {
+        await fetch(`https://api.github.com/gists/${CONFIG.gistId}`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `token ${CONFIG.token}` },
+            body: JSON.stringify({ files: { 'ainav.json': { content: JSON.stringify(db, null, 2) } } })
+        });
+        updateStatus(true);
+    } catch (e) { updateStatus(false); }
+}
+
+function confirmReset() {
+    if (confirm(I18N[db.lang||'en'].confirmReset)) {
+        localStorage.clear();
+        location.reload();
+    }
+}
+
+// 7. 辅助功能
+function addItem() {
+    let url = document.getElementById('siteUrl').value.trim();
+    if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+    const cIdx = document.getElementById('targetCat').value;
+    const n = document.getElementById('siteName').value;
+    if (cIdx !== "" && n && url) {
+        db.boards[db.activeIndex].categories[cIdx].sites.push({ name: n, url: url });
+        closeAllModals(); render(); pushToGist();
+    }
+}
+
+function createNewBoard() {
+    const n = prompt(I18N[db.lang||'en'].promptNewBoard);
+    if(n) { db.boards.push({title: n, categories: []}); db.activeIndex = db.boards.length - 1; render(); pushToGist(); }
+}
+
+function renameBoard() {
+    const n = document.getElementById('siteTitleInput').value.trim();
+    if(n) { db.boards[db.activeIndex].title = n; render(); pushToGist(); }
+}
+
+function deleteCurrentBoard() {
+    if(confirm("Delete this board?")) { db.boards.splice(db.activeIndex, 1); db.activeIndex = 0; render(); pushToGist(); }
+}
+
+function addCategory() {
+    const n = document.getElementById('catName').value.trim();
+    if(n) { db.boards[db.activeIndex].categories.push({name: n, sites: []}); render(); pushToGist(); closeAllModals(); }
+}
+
+function deleteSite(c, s) { if(confirm(I18N[db.lang].confirmDelSite)) { db.boards[db.activeIndex].categories[c].sites.splice(s,1); render(); pushToGist(); } }
+function deleteCat(i) { if(confirm(I18N[db.lang].confirmDelCat)) { db.boards[db.activeIndex].categories.splice(i,1); render(); pushToGist(); } }
+
+function openCustomModal(id) { 
+    document.getElementById('modalOverlay').style.display = 'block'; 
+    document.getElementById(id).classList.add('active'); 
+    if(id==='settingsModal') {
+        showSettingsHome();
+        document.getElementById('ghToken').value = CONFIG.token || '';
+        document.getElementById('gistId').value = CONFIG.gistId || '';
+    }
+}
+
+function closeAllModals() {
+    document.getElementById('modalOverlay').style.display = 'none';
+    document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('active'));
+}
+
+function updateStatus(on) {
+    const dot = document.getElementById('syncStatus');
+    if (dot) dot.className = `status-dot ${on ? 'status-online' : ''}`;
+}
+
+function switchBoard(i) { db.activeIndex = parseInt(i); render(); pushToGist(); }
+
+function handleSearch(e) {
+    if (e.key === 'Enter') {
+        const q = e.target.value;
+        window.open(q.includes('.') ? (q.startsWith('http') ? q : 'https://'+q) : 'https://www.google.com/search?q='+encodeURIComponent(q));
+    }
+}
+
+// 启动程序
 init();
