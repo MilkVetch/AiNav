@@ -66,6 +66,8 @@ body {
     line-height: 1;
 }
 
+.action-btn-small { flex: 1; } /* 替代 flex-1 补丁 */
+
 .glass-btn:hover, .save-btn:hover, .action-btn-small:hover {
     background: rgba(255, 255, 255, 0.1);
     border-color: var(--primary);
@@ -77,7 +79,6 @@ body {
     border-color: rgba(59, 130, 246, 0.3);
 }
 
-/* 详情页专用的大按钮样式 */
 .save-btn {
     width: 100%;
     margin-top: 2rem;
@@ -88,7 +89,7 @@ body {
 .icon-sm { width: 1.1rem !important; height: 1.1rem !important; }
 
 /* 英雄区域展示 */
-.hero-section { text-align: center; padding: 5rem 0 3rem; min-height: 320px; background: transparent; }
+.hero-section { text-align: center; padding: 5rem 0 3rem; min-height: 320px; }
 #digitalClock { font-size: 5.5rem; font-weight: 200; margin-bottom: 0.5rem; letter-spacing: -2px; }
 #greetingText { color: var(--text-dim); margin-bottom: 2.5rem; font-size: 1.05rem; transition: opacity 0.6s ease; height: 1.5rem; }
 
@@ -103,7 +104,9 @@ body {
 }
 .search-bar input { background: none; border: none; color: white; width: 100%; margin-left: 12px; font-size: 1rem; outline: none; }
 
-/* 设置列表（细线分割） */
+/* 设置菜单样式 */
+.modal-body { padding: 0; }
+.p-content { padding: 1.8rem; }
 .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 1.5rem; cursor: pointer; transition: 0.2s; }
 .setting-item:hover { background: rgba(255, 255, 255, 0.02); }
 .setting-item .item-label { display: flex; align-items: center; gap: 12px; font-size: 0.95rem; }
@@ -140,6 +143,8 @@ body {
     margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; 
 }
 
+.input-group { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+
 .custom-input, .custom-select { 
     width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); 
     color: white; padding: 0.9rem 1rem; border-radius: 12px; outline: none; font-size: 0.95rem; 
@@ -157,7 +162,25 @@ body {
 .success { background: var(--success); }
 .danger { background: var(--danger); }
 
-/* 欢迎页卡片样式保持不变... */
+/* 网址网格渲染 */
+#app { max-width: 1200px; margin: 0 auto; padding: 0 2rem 5rem; }
+section { margin-bottom: 3rem; }
+.category-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; color: var(--text-dim); font-weight: 500; }
+.board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
+
+.link-card {
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    padding: 1.2rem; border-radius: 16px; display: flex; flex-direction: column;
+    align-items: center; gap: 10px; text-decoration: none; color: white;
+    transition: 0.2s; position: relative;
+}
+.link-card:hover { background: rgba(255,255,255,0.08); transform: translateY(-3px); border-color: var(--primary); }
+.link-card img { width: 32px; height: 32px; border-radius: 8px; }
+.link-card span { font-size: 0.9rem; font-weight: 500; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.del-site-btn { position: absolute; top: 5px; right: 5px; background: none; border: none; color: var(--text-dim); cursor: pointer; opacity: 0; }
+.link-card:hover .del-site-btn { opacity: 1; }
+
+/* 欢迎页卡片样式 */
 .welcome-container { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; padding: 2rem; }
 .welcome-card { background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 2rem; border-radius: 24px; backdrop-filter: blur(var(--glass-blur)); display: flex; flex-direction: column; gap: 1.5rem; }
 .welcome-card h4 { color: var(--primary); font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
@@ -170,8 +193,6 @@ body {
 /* 辅助类 */
 .hide { display: none !important; }
 .footer { padding: 2.5rem; border-top: 1px solid var(--divider); text-align: center; font-size: 0.75rem; color: var(--text-dim); }
-.spinner { width: 24px; height: 24px; border: 2.5px solid rgba(255, 255, 255, 0.1); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 15px; }
-@keyframes spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 768px) {
     .welcome-container { grid-template-columns: 1fr; }

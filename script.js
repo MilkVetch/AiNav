@@ -1,6 +1,5 @@
 /**
  * 网址导航核心逻辑 - 2025 全新版
- * 包含：双语 I18N、动态时间系统、Gist 同步与设置菜单导航
  */
 
 const I18N = {
@@ -55,40 +54,30 @@ let db = { activeIndex: 0, boards: [], lang: 'en' };
 let isConfigured = false;
 const CONFIG = { token: localStorage.getItem('gh_token'), gistId: localStorage.getItem('gh_gist_id') };
 
-// 1. 初始化入口
 function init() {
     updateClock(); 
     setInterval(updateClock, 1000);
-    
     if (CONFIG.token && CONFIG.gistId) {
         fetchData();
     } else {
-        render(); // 未配置时显示引导页
+        render(); 
     }
     lucide.createIcons();
 }
 
-// 2. 动态更新：时间、背景光晕、双语问候
 function updateClock() {
     const now = new Date();
     const h = now.getHours(), m = now.getMinutes();
-    
-    // 数字时钟更新
     document.getElementById('digitalClock').innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-
-    // 背景颜色随时间流转
-    let glow = "rgba(150, 100, 255, 0.12)"; // 默认深夜紫
-    if (h >= 5 && h < 12) glow = "rgba(255, 180, 100, 0.12)"; // 晨光橘
-    else if (h >= 12 && h < 18) glow = "rgba(100, 200, 255, 0.12)"; // 午后蓝
+    let glow = "rgba(150, 100, 255, 0.12)";
+    if (h >= 5 && h < 12) glow = "rgba(255, 180, 100, 0.12)";
+    else if (h >= 12 && h < 18) glow = "rgba(100, 200, 255, 0.12)";
     document.documentElement.style.setProperty('--glow-color', glow);
-
-    // 动态双语问候语
     const greetingEl = document.getElementById('greetingText');
     const lang = db.lang || 'en';
     const hourKeys = Object.keys(GREETINGS[lang]).sort().reverse();
     const currentKey = hourKeys.find(key => h >= parseInt(key.split(':')[0])) || "00:00";
     const target = GREETINGS[lang][currentKey];
-
     if (greetingEl.innerText !== target) {
         greetingEl.style.opacity = "0";
         setTimeout(() => {
@@ -98,7 +87,6 @@ function updateClock() {
     }
 }
 
-// 3. 数据层：Gist 拉取与兼容处理
 async function fetchData() {
     try {
         const res = await fetch(`https://api.github.com/gists/${CONFIG.gistId}`, {
@@ -107,14 +95,7 @@ async function fetchData() {
         if (!res.ok) throw new Error();
         const gist = await res.json();
         const content = JSON.parse(gist.files['ainav.json'].content);
-        
-        // 兼容性升级：旧结构 -> 多面板结构
-        db = content.categories ? { 
-            activeIndex: 0, 
-            boards: [{ title: "Main", categories: content.categories }], 
-            lang: content.lang || 'en' 
-        } : content;
-
+        db = content.categories ? { activeIndex: 0, boards: [{ title: "Main", categories: content.categories }], lang: content.lang || 'en' } : content;
         isConfigured = true;
         updateStatus(true);
         render();
@@ -124,38 +105,28 @@ async function fetchData() {
     }
 }
 
-// 4. 核心渲染：包含欢迎页、面板导航、双语切换逻辑
 function render() {
     const dict = I18N[db.lang || 'en'];
-    
-    // 更新基础文本
     document.getElementById('navBrandText').innerText = dict.navBrand;
     document.getElementById('btnSettingsText').innerText = dict.settings;
     document.getElementById('searchInput').placeholder = dict.searchPlaceholder;
     document.getElementById('menuLangText').innerText = dict.menuLang;
     document.getElementById('menuBackendText').innerText = dict.menuBackend;
     document.getElementById('modalTitleSettings').innerText = dict.modalTitleSettings;
-
     const app = document.getElementById('app');
 
-    // 情况 A：未配置状态 - 显示双语欢迎/教程页
     if (!isConfigured) {
         document.getElementById('searchBarArea').classList.add('hide');
         document.getElementById('menuBoardItem').classList.add('hide');
         document.getElementById('menuBoardDivider').classList.add('hide');
         document.getElementById('addSiteBtn').classList.add('hide');
         document.getElementById('addCatBtn').classList.add('hide');
-
         app.innerHTML = `
             <div class="welcome-container">
                 <div class="welcome-card">
                     <h4>✨ ${dict.introTitle}</h4>
                     <p>${dict.introDesc}</p>
-                    <ul>
-                        <li>${dict.feature1}</li>
-                        <li>${dict.feature2}</li>
-                        <li>${dict.feature3}</li>
-                    </ul>
+                    <ul><li>${dict.feature1}</li><li>${dict.feature2}</li><li>${dict.feature3}</li></ul>
                     <button class="save-btn" onclick="handleOpenSettings()">
                         <i data-lucide="settings" class="icon-sm"></i> ${dict.setupBtn}
                     </button>
@@ -177,7 +148,6 @@ function render() {
         return;
     }
 
-    // 情况 B：已配置状态 - 显示主功能区
     document.getElementById('searchBarArea').classList.remove('hide');
     document.getElementById('menuBoardItem').classList.remove('hide');
     document.getElementById('menuBoardDivider').classList.remove('hide');
@@ -185,21 +155,13 @@ function render() {
     document.getElementById('addCatBtn').classList.remove('hide');
     document.getElementById('addSiteBtn').innerText = dict.addSite;
     document.getElementById('addCatBtn').innerText = dict.addCat;
-
     const board = db.boards[db.activeIndex] || db.boards[0];
 
-    // 如果面板数组为空
     if (!board) {
-        app.innerHTML = `
-            <div class="hero-section">
-                <button class="save-btn" style="max-width:200px; margin: 0 auto;" onclick="createNewBoard()">
-                    ${dict.emptyBoard}
-                </button>
-            </div>`;
+        app.innerHTML = `<div class="hero-section"><button class="save-btn" style="max-width:200px; margin: 0 auto;" onclick="createNewBoard()">${dict.emptyBoard}</button></div>`;
         return;
     }
 
-    // 填充弹窗与详情页文本
     document.getElementById('menuBoardText').innerText = dict.menuBoard;
     document.getElementById('labelSwitchBoard').innerText = dict.labelSwitchBoard;
     document.getElementById('labelRenameBoard').innerText = dict.labelRenameBoard;
@@ -212,47 +174,29 @@ function render() {
     document.getElementById('modalTitleCat').innerText = dict.modalTitleCat;
     document.getElementById('btnConfirmCat').innerText = dict.btnConfirm;
 
-    // 渲染面板内容
-    document.getElementById('boardSwitcher').innerHTML = db.boards.map((b, i) => 
-        `<option value="${i}" ${i==db.activeIndex?'selected':''}>${b.title}</option>`
-    ).join('');
-    
+    document.getElementById('boardSwitcher').innerHTML = db.boards.map((b, i) => `<option value="${i}" ${i==db.activeIndex?'selected':''}>${b.title}</option>`).join('');
     app.innerHTML = '';
     const catSelect = document.getElementById('targetCat');
     catSelect.innerHTML = '';
-
     board.categories.forEach((cat, cIdx) => {
         catSelect.innerHTML += `<option value="${cIdx}">${cat.name}</option>`;
         const section = document.createElement('section');
-        section.innerHTML = `
-            <div class="category-header">
-                <span>${cat.name}</span>
-                <button class="close-btn" style="font-size:1rem" onclick="deleteCat(${cIdx})">
-                    <i data-lucide="trash-2" class="icon-sm"></i>
-                </button>
-            </div>
-            <div class="board-grid" id="cat-${cIdx}"></div>
-        `;
+        section.innerHTML = `<div class="category-header"><span>${cat.name}</span><button class="close-btn" style="font-size:1rem" onclick="deleteCat(${cIdx})"><i data-lucide="trash-2" class="icon-sm"></i></button></div><div class="board-grid" id="cat-${cIdx}"></div>`;
         app.appendChild(section);
-
         cat.sites.forEach((site, sIdx) => {
             let domain = 'invalid';
-            try { domain = new URL(site.url).hostname; } catch(e) {} // 防崩溃逻辑
-            document.getElementById(`cat-${cIdx}`).innerHTML += `
-                <a href="${site.url}" target="_blank" class="link-card">
-                    <button class="del-site-btn" onclick="event.preventDefault(); deleteSite(${cIdx}, ${sIdx})">
-                        &times;
-                    </button>
-                    <img src="https://www.google.com/s2/favicons?sz=128&domain=${domain}" onerror="this.src='https://lucide.dev/favicon.ico'">
-                    <span>${site.name}</span>
-                </a>
-            `;
+            try { domain = new URL(site.url).hostname; } catch(e) {}
+            document.getElementById(`cat-${cIdx}`).innerHTML += `<a href="${site.url}" target="_blank" class="link-card"><button class="del-site-btn" onclick="event.preventDefault(); deleteSite(${cIdx}, ${sIdx})">&times;</button><img src="https://www.google.com/s2/favicons?sz=128&domain=${domain}" onerror="this.src='https://lucide.dev/favicon.ico'"><span>${site.name}</span></a>`;
         });
     });
     lucide.createIcons();
 }
 
-// 5. 设置菜单导航逻辑
+/** 修复：Settings 按钮点击处理函数 **/
+function handleOpenSettings() {
+    openCustomModal('settingsModal');
+}
+
 function showSettingPage(pageId) {
     document.getElementById('settingsHome').classList.add('hide');
     document.querySelectorAll('.setting-detail-page').forEach(p => p.classList.add('hide'));
@@ -266,7 +210,6 @@ function showSettingsHome() {
     document.getElementById('settingsBackBtn').classList.add('hide');
 }
 
-// 6. 核心功能函数
 function setLanguage(lang) {
     db.lang = lang;
     render();
@@ -274,7 +217,7 @@ function setLanguage(lang) {
 }
 
 function copyInitialJSON() {
-    const data = { activeIndex: 0, lang: "en", boards: [] }; // 纯净英文初始版
+    const data = { activeIndex: 0, lang: "en", boards: [] };
     navigator.clipboard.writeText(JSON.stringify(data, null, 2)).then(() => {
         const btn = document.getElementById('copyBtn');
         const originalText = btn.innerText;
@@ -310,7 +253,6 @@ function confirmReset() {
     }
 }
 
-// 7. 辅助功能
 function addItem() {
     let url = document.getElementById('siteUrl').value.trim();
     if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
@@ -373,5 +315,4 @@ function handleSearch(e) {
     }
 }
 
-// 启动程序
 init();
