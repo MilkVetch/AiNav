@@ -44,8 +44,7 @@ const GREETINGS = {
     en: { "00:00": "Midnight inspiration.", "05:00": "A new day begins.", "08:00": "Good morning, stay focused.", "12:00": "Take a short break.", "14:00": "Good afternoon.", "18:00": "Enjoy the sunset.", "21:00": "Music for the soul.", "23:00": "Good night, sweet dreams." }
 };
 
-// 修改点 1：将初始状态的语言设为英文
-let db = { activeIndex: 0, boards: [], lang: 'en' };
+let db = { activeIndex: 0, boards: [], lang: 'zh' };
 let isConfigured = false;
 const CONFIG = { token: localStorage.getItem('gh_token'), gistId: localStorage.getItem('gh_gist_id') };
 
@@ -64,7 +63,7 @@ function updateClock() {
     else if (h >= 12 && h < 18) glow = "rgba(100, 200, 255, 0.12)";
     document.documentElement.style.setProperty('--glow-color', glow);
     const greetingEl = document.getElementById('greetingText');
-    const lang = db.lang || 'en';
+    const lang = db.lang || 'zh';
     const hourKeys = Object.keys(GREETINGS[lang]).sort().reverse();
     const currentKey = hourKeys.find(key => h >= parseInt(key.split(':')[0])) || "00:00";
     const target = GREETINGS[lang][currentKey];
@@ -80,32 +79,26 @@ async function fetchData() {
         if (!res.ok) throw new Error();
         const gist = await res.json();
         const content = JSON.parse(gist.files['ainav.json'].content);
-        // 数据升级时默认给 en
-        db = content.categories ? { activeIndex: 0, boards: [{title: "Main", categories: content.categories}], lang: 'en' } : content;
+        db = content.categories ? { activeIndex: 0, boards: [{title: "Main", categories: content.categories}], lang: 'zh' } : content;
         isConfigured = true; render();
     } catch (err) { isConfigured = false; render(); }
 }
 
+// 核心渲染：包含全新的教程步骤包裹器
 function render() {
-    const dict = I18N[db.lang || 'en'];
+    const dict = I18N[db.lang || 'zh'];
     document.getElementById('navBrandText').innerText = dict.navBrand;
     document.getElementById('btnSettingsText').innerText = dict.settings;
     document.getElementById('searchInput').placeholder = dict.searchPlaceholder;
     document.getElementById('menuLangText').innerText = dict.menuLang;
     document.getElementById('menuBackendText').innerText = dict.menuBackend;
     document.getElementById('modalTitleSettings').innerText = dict.modalTitleSettings;
-    
-    if (isConfigured) {
-        document.getElementById('menuBoardItem').classList.remove('hide');
-        document.getElementById('menuBoardDivider').classList.remove('hide');
-        document.getElementById('addSiteBtn').classList.remove('hide');
-        document.getElementById('addCatBtn').classList.remove('hide');
-        document.getElementById('addSiteBtn').innerText = dict.addSite;
-        document.getElementById('addCatBtn').innerText = dict.addCat;
-    }
 
     const app = document.getElementById('app');
     if (!isConfigured) {
+        document.getElementById('searchBarArea').classList.add('hide');
+        document.getElementById('menuBoardItem').classList.add('hide');
+        document.getElementById('menuBoardDivider').classList.add('hide');
         app.innerHTML = `
             <div class="welcome-container">
                 <div class="welcome-card">
@@ -116,20 +109,27 @@ function render() {
                 </div>
                 <div class="welcome-card">
                     <h4>📖 ${dict.tutorialTitle}</h4>
-                    <div class="tutorial-step">${dict.tutorialStep1}</div>
-                    <div class="tutorial-step">${dict.tutorialStep2}</div>
-                    <div class="tutorial-step">${dict.tutorialStep3}</div>
-                    <button class="glass-btn w-100 mt-3" id="copyBtn" onclick="copyInitialJSON()">${dict.copyJsonBtn}</button>
+                    <div class="tutorial-steps-wrapper">
+                        <div class="tutorial-step">${dict.tutorialStep1}</div>
+                        <div class="tutorial-step">${dict.tutorialStep2}</div>
+                        <div class="tutorial-step">${dict.tutorialStep3}</div>
+                    </div>
+                    <button class="glass-btn" id="copyBtn" onclick="copyInitialJSON()">${dict.copyJsonBtn}</button>
                 </div>
             </div>`;
         lucide.createIcons(); return;
     }
 
+    document.getElementById('searchBarArea').classList.remove('hide');
+    document.getElementById('menuBoardItem').classList.remove('hide');
+    document.getElementById('menuBoardDivider').classList.remove('hide');
+    document.getElementById('addSiteBtn').classList.remove('hide');
+    document.getElementById('addCatBtn').classList.remove('hide');
+    document.getElementById('addSiteBtn').innerText = dict.addSite;
+    document.getElementById('addCatBtn').innerText = dict.addCat;
+
     const board = db.boards[db.activeIndex] || db.boards[0];
-    if (!board) {
-        app.innerHTML = `<div class="hero-section"><button class="save-btn" style="max-width:180px; margin: 0 auto;" onclick="createNewBoard()">${dict.emptyBoard}</button></div>`;
-        return;
-    }
+    if (!board) { app.innerHTML = `<div class="hero-section"><button class="save-btn" style="max-width:180px; margin: 0 auto;" onclick="createNewBoard()">${dict.emptyBoard}</button></div>`; return; }
 
     document.getElementById('labelSwitchBoard').innerText = dict.labelSwitchBoard;
     document.getElementById('labelRenameBoard').innerText = dict.labelRenameBoard;
@@ -153,22 +153,15 @@ function render() {
         section.innerHTML = `<div class="category-header"><span>${cat.name}</span><button class="close-btn" style="font-size:1rem" onclick="deleteCat(${cIdx})"><i data-lucide="trash-2" class="icon-sm"></i></button></div><div class="board-grid" id="cat-${cIdx}"></div>`;
         app.appendChild(section);
         cat.sites.forEach((site, sIdx) => {
-            let domain = 'invalid';
-            try { domain = new URL(site.url).hostname; } catch(e) {}
+            let domain = 'invalid'; try { domain = new URL(site.url).hostname; } catch(e) {}
             document.getElementById(`cat-${cIdx}`).innerHTML += `<a href="${site.url}" target="_blank" class="link-card"><button class="del-site-btn" onclick="event.preventDefault(); deleteSite(${cIdx}, ${sIdx})">&times;</button><img src="https://www.google.com/s2/favicons?sz=128&domain=${domain}" onerror="this.src='https://lucide.dev/favicon.ico'"><span>${site.name}</span></a>`;
         });
     });
     lucide.createIcons();
-    updateStatus(true);
 }
 
-// 修改点 2：一键复制生成的 JSON 默认设为英文
 function copyInitialJSON() {
-    const data = { 
-        activeIndex: 0, 
-        lang: "en", 
-        boards: [] 
-    };
+    const data = { activeIndex: 0, lang: db.lang || "en", boards: [] };
     navigator.clipboard.writeText(JSON.stringify(data, null, 2)).then(() => {
         const btn = document.getElementById('copyBtn');
         const originalText = btn.innerText;
