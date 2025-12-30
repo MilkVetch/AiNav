@@ -5,11 +5,11 @@
 const I18N = {
     zh: {
         navBrand: "网址导航", searchPlaceholder: "搜索或输入网址...", addSite: "+ 网址", addCat: "+ 分类", settings: "设置",
-        modalTitleSettings: "系统设置", menuLang: "语言设置", menuBoard: "面板管理", menuBackend: "后端配置", 
+        modalTitleSettings: "系统设置", menuLang: "语言设置", menuBoard: "面板管理", menuSetup: "配置中心", 
         labelSwitchBoard: "切换面板", labelRenameBoard: "面板更名", btnApply: "应用", btnNew: "+ 新增", btnDel: "删除", 
         btnSave: "保存并同步", modalTitleSite: "新增网址", labelSelectCat: "选择分类", labelSiteName: "名称", 
         labelSiteUrl: "网址", btnConfirm: "确认添加", modalTitleCat: "新增分类", labelCatName: "分类名称", 
-        setupBtn: "去配置", emptyBoard: "创建首个面板", confirmDelSite: "确认删除网址？", 
+        setupBtn: "开始配置", emptyBoard: "创建首个面板", confirmDelSite: "确认删除网址？", 
         confirmDelCat: "确认删除分类？", confirmReset: "断开云端连接？", promptNewBoard: "输入新面板名称：",
         introTitle: "这个导航站能做什么？",
         introDesc: "基于 GitHub Gist 的极简导航。数据 100% 存储在您的私有账号中。",
@@ -25,11 +25,11 @@ const I18N = {
     },
     en: {
         navBrand: "Nav Hub", searchPlaceholder: "Search...", addSite: "+ Site", addCat: "+ Category", settings: "Settings",
-        modalTitleSettings: "Settings", menuLang: "Language", menuBoard: "Boards", menuBackend: "Storage", 
+        modalTitleSettings: "Settings", menuLang: "Language", menuBoard: "Boards", menuSetup: "Setup", 
         labelSwitchBoard: "Switch", labelRenameBoard: "Rename", btnApply: "Apply", btnNew: "+ New", btnDel: "Delete", 
         btnSave: "Save & Sync", modalTitleSite: "Add Site", labelSelectCat: "Category", labelSiteName: "Name", 
         labelSiteUrl: "URL", btnConfirm: "Confirm", modalTitleCat: "Add Category", labelCatName: "Name", 
-        setupBtn: "Setup", emptyBoard: "Create Board", confirmDelSite: "Delete?", 
+        setupBtn: "Setup Now", emptyBoard: "Create Board", confirmDelSite: "Delete?", 
         confirmDelCat: "Delete category?", confirmReset: "Reset config?", promptNewBoard: "Name:",
         introTitle: "What is this?",
         introDesc: "A minimal dashboard powered by GitHub Gist. 100% private data storage.",
@@ -111,7 +111,7 @@ function render() {
     document.getElementById('btnSettingsText').innerText = dict.settings;
     document.getElementById('searchInput').placeholder = dict.searchPlaceholder;
     document.getElementById('menuLangText').innerText = dict.menuLang;
-    document.getElementById('menuBackendText').innerText = dict.menuBackend;
+    document.getElementById('menuSetupText').innerText = dict.menuSetup; // 更新为 Setup
     document.getElementById('modalTitleSettings').innerText = dict.modalTitleSettings;
     const app = document.getElementById('app');
 
@@ -127,7 +127,7 @@ function render() {
                     <h4>✨ ${dict.introTitle}</h4>
                     <p>${dict.introDesc}</p>
                     <ul><li>${dict.feature1}</li><li>${dict.feature2}</li><li>${dict.feature3}</li></ul>
-                    <button class="save-btn" onclick="handleOpenSettings()">
+                    <button class="save-btn" onclick="handleOpenSetup()">
                         <i data-lucide="settings" class="icon-sm"></i> ${dict.setupBtn}
                     </button>
                 </div>
@@ -192,9 +192,15 @@ function render() {
     lucide.createIcons();
 }
 
-/** 修复：Settings 按钮点击处理函数 **/
+/** 打开设置主页 **/
 function handleOpenSettings() {
     openCustomModal('settingsModal');
+}
+
+/** 核心改进：直接跳转到 Setup 配置页面 **/
+function handleOpenSetup() {
+    openCustomModal('settingsModal');
+    showSettingPage('pageSetup');
 }
 
 function showSettingPage(pageId) {
@@ -290,7 +296,10 @@ function openCustomModal(id) {
     document.getElementById('modalOverlay').style.display = 'block'; 
     document.getElementById(id).classList.add('active'); 
     if(id==='settingsModal') {
-        showSettingsHome();
+        // 默认显示主页，除非通过 handleOpenSetup 覆盖
+        if (document.getElementById('pageSetup').classList.contains('hide')) {
+             showSettingsHome();
+        }
         document.getElementById('ghToken').value = CONFIG.token || '';
         document.getElementById('gistId').value = CONFIG.gistId || '';
     }
@@ -299,6 +308,10 @@ function openCustomModal(id) {
 function closeAllModals() {
     document.getElementById('modalOverlay').style.display = 'none';
     document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('active'));
+    // 延迟重置设置窗口状态，避免关闭时的闪烁
+    setTimeout(() => {
+        showSettingsHome();
+    }, 300);
 }
 
 function updateStatus(on) {
