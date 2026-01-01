@@ -10,7 +10,7 @@
 
     <div class="bg-glow"></div>
 
-    <nav class="site-navbar">
+    <nav class="navbar">
         <div class="nav-container">
             <div class="nav-brand" onclick="confirmReset()">
                 <span id="navBrandText">Nav Hub</span>
@@ -18,10 +18,11 @@
                     <span id="syncStatus" class="status-dot"></span>
                 </div>
             </div>
+            
             <div class="nav-actions">
                 <button id="addSiteBtn" class="glass-btn hide" onclick="openCustomModal('siteModal')"></button>
                 <button id="addCatBtn" class="glass-btn hide" onclick="openCustomModal('catModal')"></button>
-                <button class="glass-btn setup-primary" id="topSetupBtn" onclick="handleOpenSettings()">
+                <button class="glass-btn primary" id="topSetupBtn" onclick="handleOpenSettings()">
                     <i data-lucide="settings" class="icon-sm"></i>
                     <span id="btnSettingsText">Setup</span>
                 </button>
@@ -33,7 +34,7 @@
         <header class="hero-section">
             <h1 id="digitalClock">00:00</h1>
             <p id="greetingText">...</p>
-            <div class="search-container" id="searchBarArea">
+            <div class="search-bar-area" id="searchBarArea">
                 <div class="search-box">
                     <i data-lucide="search"></i>
                     <input type="text" id="searchInput" onkeypress="handleSearch(event)">
@@ -49,69 +50,87 @@
 
     <div class="custom-modal" id="settingsModal">
         <div class="modal-header">
-            <button class="nav-back-btn hide" id="settingsBackBtn" onclick="showSettingsHome()">
-                <i data-lucide="chevron-left" class="chevron-icon"></i>
+            <button class="back-btn hide" id="settingsBackBtn" onclick="showSettingsHome()">
+                <i data-lucide="chevron-left"></i>
             </button>
             <h3 id="modalTitleSettings">Setup</h3>
-            <button class="modal-close-x" onclick="closeAllModals()">&times;</button>
+            <button class="close-btn" onclick="closeAllModals()">&times;</button>
         </div>
         <div class="modal-body">
             <div id="settingsHome">
-                <div class="setup-menu-item" onclick="showSettingPage('pageLang')">
-                    <div class="menu-label-box"><i data-lucide="languages" class="menu-icon"></i><span id="menuLangText">Language</span></div>
-                    <i data-lucide="chevron-right" class="chevron-icon"></i>
+                <div class="menu-item" onclick="showSettingPage('pageLang')">
+                    <div class="menu-label"><i data-lucide="languages"></i> <span id="menuLangText">Language</span></div>
+                    <i data-lucide="chevron-right" class="arrow-icon"></i>
                 </div>
-                <div class="setup-menu-divider"></div>
-                <div class="setup-menu-item hide" id="menuBoardItem" onclick="showSettingPage('pageBoards')">
-                    <div class="menu-label-box"><i data-lucide="layers" class="menu-icon"></i><span id="menuBoardText">Boards</span></div>
-                    <i data-lucide="chevron-right" class="chevron-icon"></i>
+                <div class="menu-divider"></div>
+                <div class="menu-item hide" id="menuBoardItem" onclick="showSettingPage('pageBoards')">
+                    <div class="menu-label"><i data-lucide="layers"></i> <span id="menuBoardText">Boards</span></div>
+                    <i data-lucide="chevron-right" class="arrow-icon"></i>
                 </div>
-                <div class="setup-menu-divider hide" id="menuBoardDivider"></div>
-                <div class="setup-menu-item" onclick="showSettingPage('pageSetup')">
-                    <div class="menu-label-box"><i data-lucide="database" class="menu-icon"></i><span id="menuSetupText">Setup</span></div>
-                    <i data-lucide="chevron-right" class="chevron-icon"></i>
-                </div>
-            </div>
-
-            <div id="pageSetup" class="setup-sub-page hide">
-                <div class="setup-form">
-                    <div class="setup-field">
-                        <label class="setup-label">GitHub Token</label>
-                        <input type="password" id="ghToken" class="setup-input">
-                    </div>
-                    <div class="setup-field">
-                        <label class="setup-label">Gist ID</label>
-                        <input type="text" id="gistId" class="setup-input">
-                    </div>
-                    <button class="setup-confirm-btn" id="btnSaveConfig" onclick="saveSettings()">保存并同步</button>
+                <div class="menu-divider hide" id="menuBoardDivider"></div>
+                <div class="menu-item" onclick="showSettingPage('pageSetup')">
+                    <div class="menu-label"><i data-lucide="database"></i> <span id="menuSetupText">Setup</span></div>
+                    <i data-lucide="chevron-right" class="arrow-icon"></i>
                 </div>
             </div>
 
-            <div id="pageLang" class="setup-sub-page hide">
-                <div class="setup-form">
-                    <label class="setup-label">Select Language</label>
-                    <div class="setup-row"><button class="setup-btn-sm" onclick="setLanguage('zh')">简体中文</button><button class="setup-btn-sm" onclick="setLanguage('en')">English</button></div>
+            <div id="pageLang" class="detail-page hide">
+                <div class="form-wrapper">
+                    <label class="form-label">Language / 语言</label>
+                    <div class="form-row">
+                        <button class="form-btn-sm" onclick="setLanguage('zh')">简体中文</button>
+                        <button class="form-btn-sm" onclick="setLanguage('en')">English</button>
+                    </div>
                 </div>
             </div>
-            <div id="pageBoards" class="setup-sub-page hide">
-                <div class="setup-form">
-                    <label class="setup-label" id="labelSwitchBoard">Switch</label>
-                    <select id="boardSwitcher" class="setup-select" onchange="switchBoard(this.value)"></select>
-                    <label class="setup-label" id="labelRenameBoard">Rename</label>
-                    <div class="setup-input-group"><input type="text" id="siteTitleInput" class="setup-input"><button class="setup-btn-sm" onclick="renameBoard()">应用</button></div>
-                    <div class="setup-row"><button class="setup-btn success" onclick="createNewBoard()">+ 新增</button><button class="setup-btn danger" onclick="deleteCurrentBoard()">删除</button></div>
+
+            <div id="pageBoards" class="detail-page hide">
+                <div class="form-wrapper">
+                    <label class="form-label" id="labelSwitchBoard">Switch</label>
+                    <select id="boardSwitcher" class="form-select" onchange="switchBoard(this.value)"></select>
+                    <label class="form-label" id="labelRenameBoard">Rename</label>
+                    <div class="form-group">
+                        <input type="text" id="siteTitleInput" class="form-input">
+                        <button class="form-btn-sm" onclick="renameBoard()">应用</button>
+                    </div>
+                    <div class="form-row">
+                        <button class="form-btn success" onclick="createNewBoard()">+ 新增</button>
+                        <button class="form-btn danger" onclick="deleteCurrentBoard()">删除</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="pageSetup" class="detail-page hide">
+                <div class="form-wrapper">
+                    <div class="form-field">
+                        <label class="form-label">GitHub Token</label>
+                        <input type="password" id="ghToken" class="form-input">
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Gist ID</label>
+                        <input type="text" id="gistId" class="form-input">
+                    </div>
+                    <button class="form-confirm-btn" id="btnSaveConfig" onclick="saveSettings()">保存并同步</button>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="custom-modal" id="siteModal">
-        <div class="modal-header"><h3>新增网址</h3><button class="modal-close-x" onclick="closeAllModals()">&times;</button></div>
-        <div class="modal-body"><div class="setup-form">
-            <div class="setup-field"><label class="setup-label">分类</label><select id="targetCat" class="setup-select"></select></div>
-            <div class="setup-field"><label class="setup-label">名称</label><input type="text" id="siteName" class="setup-input"></div>
-            <div class="setup-field"><label class="setup-label">网址</label><input type="text" id="siteUrl" class="setup-input" placeholder="www.google.com"></div>
-            <button class="setup-confirm-btn" onclick="addItem()">确认添加</button>
+        <div class="modal-header"><h3>新增网址</h3><button class="close-btn" onclick="closeAllModals()">&times;</button></div>
+        <div class="modal-body"><div class="form-wrapper">
+            <div class="form-field"><label class="form-label">选择分类</label><select id="targetCat" class="form-select"></select></div>
+            <div class="form-field"><label class="form-label">名称</label><input type="text" id="siteName" class="form-input"></div>
+            <div class="form-field"><label class="form-label">网址</label><input type="text" id="siteUrl" class="form-input" placeholder="www.google.com"></div>
+            <button class="form-confirm-btn" onclick="addItem()">确认添加</button>
+        </div></div>
+    </div>
+
+    <div class="custom-modal" id="catModal">
+        <div class="modal-header"><h3>新增分类</h3><button class="close-btn" onclick="closeAllModals()">&times;</button></div>
+        <div class="modal-body"><div class="form-wrapper">
+            <div class="form-field"><label class="form-label">分类名称</label><input type="text" id="catName" class="form-input"></div>
+            <button class="form-confirm-btn" onclick="addCategory()">确认添加</button>
         </div></div>
     </div>
 
