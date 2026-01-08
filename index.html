@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle">Nav Hub</title>
+    <title id="pageTitle">网址导航</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="theme-classic">
@@ -12,8 +12,7 @@
 
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-brand" onclick="confirmReset()">
-                <span id="navBrandText">Nav Hub</span>
+            <div class="nav-brand" onclick="render()"> <span id="navBrandText">网址导航</span>
                 <div id="statusIndicator">
                     <span id="syncStatus" class="status-dot"></span>
                 </div>
@@ -22,9 +21,9 @@
             <div class="nav-actions">
                 <button id="addSiteBtn" class="glass-btn hide" onclick="openCustomModal('siteModal')"></button>
                 <button id="addCatBtn" class="glass-btn hide" onclick="openCustomModal('catModal')"></button>
-                <button class="glass-btn primary" id="topSetupBtn" onclick="handleOpenSettings()">
+                <button class="glass-btn primary" onclick="handleOpenSettings()">
                     <i data-lucide="settings" class="icon-sm"></i>
-                    <span id="btnSettingsText">Setup</span>
+                    <span id="btnSettingsText">Settings</span>
                 </button>
             </div>
         </div>
@@ -53,24 +52,28 @@
             <button class="back-btn hide" id="settingsBackBtn" onclick="showSettingsHome()">
                 <i data-lucide="chevron-left"></i>
             </button>
-            <h3 id="modalTitleSettings">Setup</h3>
+            <h3 id="modalTitleSettings">Settings</h3>
             <button class="close-btn" onclick="closeAllModals()">&times;</button>
         </div>
         <div class="modal-body">
             <div id="settingsHome">
                 <div class="menu-item" onclick="showSettingPage('pageLang')">
                     <div class="menu-label"><i data-lucide="languages"></i> <span id="menuLangText">Language</span></div>
-                    <i data-lucide="chevron-right" class="arrow-icon"></i>
+                    <i data-lucide="chevron-right" class="chevron-icon"></i>
                 </div>
                 <div class="menu-divider"></div>
                 <div class="menu-item hide" id="menuBoardItem" onclick="showSettingPage('pageBoards')">
                     <div class="menu-label"><i data-lucide="layers"></i> <span id="menuBoardText">Boards</span></div>
-                    <i data-lucide="chevron-right" class="arrow-icon"></i>
+                    <i data-lucide="chevron-right" class="chevron-icon"></i>
                 </div>
                 <div class="menu-divider hide" id="menuBoardDivider"></div>
                 <div class="menu-item" onclick="showSettingPage('pageSetup')">
-                    <div class="menu-label"><i data-lucide="database"></i> <span id="menuSetupText">Setup</span></div>
-                    <i data-lucide="chevron-right" class="arrow-icon"></i>
+                    <div class="menu-label"><i data-lucide="settings-2"></i> <span id="menuSetupText">Setup</span></div>
+                    <i data-lucide="chevron-right" class="chevron-icon"></i>
+                </div>
+                <div class="menu-divider"></div>
+                <div class="menu-item danger-text" onclick="confirmReset()">
+                    <div class="menu-label"><i data-lucide="log-out"></i> <span id="menuLogoutText">Logout</span></div>
                 </div>
             </div>
 
@@ -104,11 +107,11 @@
                 <div class="form-wrapper">
                     <div class="form-field">
                         <label class="form-label">GitHub Token</label>
-                        <input type="password" id="ghToken" class="form-input">
+                        <input type="password" id="ghToken" class="setup-input-full">
                     </div>
                     <div class="form-field">
                         <label class="form-label">Gist ID</label>
-                        <input type="text" id="gistId" class="form-input">
+                        <input type="text" id="gistId" class="setup-input-full">
                     </div>
                     <button class="form-confirm-btn" id="btnSaveConfig" onclick="saveSettings()">保存并同步</button>
                 </div>
@@ -118,20 +121,19 @@
 
     <div class="custom-modal" id="siteModal">
         <div class="modal-header"><h3>新增网址</h3><button class="close-btn" onclick="closeAllModals()">&times;</button></div>
-        <div class="modal-body"><div class="form-wrapper">
-            <div class="form-field"><label class="form-label">选择分类</label><select id="targetCat" class="form-select"></select></div>
-            <div class="form-field"><label class="form-label">名称</label><input type="text" id="siteName" class="form-input"></div>
-            <div class="form-field"><label class="form-label">网址</label><input type="text" id="siteUrl" class="form-input" placeholder="www.google.com"></div>
-            <button class="form-confirm-btn" onclick="addItem()">确认添加</button>
-        </div></div>
+        <div class="modal-body p-18">
+            <div class="input-field"><label class="field-label">选择分类</label><select id="targetCat" class="custom-select"></select></div>
+            <div class="input-field"><label class="field-label">名称</label><input type="text" id="siteName" class="custom-input"></div>
+            <div class="input-field"><label class="field-label">网址</label><input type="text" id="siteUrl" class="custom-input" placeholder="www.google.com"></div>
+            <button class="save-btn-full" onclick="addItem()">确认添加</button>
+        </div>
     </div>
-
     <div class="custom-modal" id="catModal">
         <div class="modal-header"><h3>新增分类</h3><button class="close-btn" onclick="closeAllModals()">&times;</button></div>
-        <div class="modal-body"><div class="form-wrapper">
-            <div class="form-field"><label class="form-label">分类名称</label><input type="text" id="catName" class="form-input"></div>
-            <button class="form-confirm-btn" onclick="addCategory()">确认添加</button>
-        </div></div>
+        <div class="modal-body p-18">
+            <div class="input-field"><label class="field-label">分类名称</label><input type="text" id="catName" class="custom-input"></div>
+            <button class="save-btn-full" onclick="addCategory()">确认添加</button>
+        </div>
     </div>
 
     <script src="https://unpkg.com/lucide@latest"></script>
